@@ -5,11 +5,13 @@ import './App.css'
 import Fetcher from './Fetcher'
 import { StateContext } from './state/StateContext'
 import { OpenAPI } from './state/openapi'
+import Page from './app/spec_specifier/page'
 
 function App() {
   const [state, setState] = useState(new OpenAPI({}));
   return (
       <StateContext.Provider value={{spec: state, setSpec: setState}}>
+        <Page />
       </StateContext.Provider>
   )
 }

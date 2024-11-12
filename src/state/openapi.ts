@@ -1,10 +1,8 @@
-import { OpenAPISchema, SchemaSchema } from "./openapi_types";
-
 class Resource {
-  schema: typeof SchemaSchema;
+  schema: any;
   name: string
 
-  constructor(name: string, schema: typeof SchemaSchema) {
+  constructor(name: string, schema: any) {
     this.name = name;
     this.schema = schema;
   }
@@ -35,8 +33,7 @@ class OpenAPI {
 function parseOpenAPI(jsonString: string): OpenAPI {
   try {
     const parsed = JSON.parse(jsonString);
-    const result = OpenAPISchema.parse(parsed);
-    return new OpenAPI(result);
+    return new OpenAPI(parsed);
   } catch (error) {
     throw new Error(`Failed to parse OpenAPI schema: ${error instanceof Error ? error.message : String(error)}`);
   }
