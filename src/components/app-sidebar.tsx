@@ -6,10 +6,12 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useSpec } from "@/state/StateContext"
+import { Link } from "react-router-dom";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const {spec, setSpec} = useSpec();
@@ -24,7 +26,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             {spec?.resources().map((resource) => (
               <SidebarMenuItem key={resource.singular_name}>
-                <span>{resource.plural_name}</span>
+                <SidebarMenuButton asChild>
+                  <Link to={`/explorer/${resource.plural_name}`}>
+                    <span>{resource.plural_name}</span>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>

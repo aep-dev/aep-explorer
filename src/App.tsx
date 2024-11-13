@@ -8,16 +8,27 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import Page from './app/explorer/page'
+import ResourceList from './app/explorer/resource_list'
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <SpecSpecifierPage />
+    element: <Page />,
+    children: [
+      {
+        path: "/",
+        element: <SpecSpecifierPage />
+      },
+      {
+        path: "/explorer",
+        element: <Page />
+      },
+      {
+        path: "/explorer/:resourceId",
+        element: <ResourceList />
+      }
+    ]
   },
-  {
-    path: "/explorer",
-    element: <Page />
-  }
 ]);
 
 function App() {
