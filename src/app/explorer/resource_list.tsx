@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useSpec } from "@/state/StateContext";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -25,16 +25,22 @@ export default function ResourceList() {
         <div>
             <h1>{resourceId}</h1>
 
-        {results.map((resource) => (
-            <Card>
-            <CardHeader>
-                <CardTitle>{resource.id}</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p>{JSON.stringify(resource)}</p>
-            </CardContent>
-            </Card>
-        ))}
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Properties</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {results.map((resource) => (
+                    <TableRow>
+                        <TableCell>{resource.id}</TableCell>
+                        <TableCell>{JSON.stringify(resource)}</TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
         </div>
     )
 }

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import './App.css'
 import { StateContext } from './state/StateContext'
 import { OpenAPI } from './state/openapi'
 import SpecSpecifierPage from './app/spec_specifier/page'
