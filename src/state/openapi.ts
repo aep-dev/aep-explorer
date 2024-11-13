@@ -1,9 +1,11 @@
 class Resource {
   schema: any;
-  name: string
+  singular_name: string
+  plural_name: string
 
-  constructor(name: string, schema: any) {
-    this.name = name;
+  constructor(singular_name: string, plural_name: string, schema: any) {
+    this.singular_name = singular_name;
+    this.plural_name = plural_name;
     this.schema = schema;
   }
 }
@@ -20,8 +22,8 @@ class OpenAPI {
         
         if (this.schema?.components?.schemas) {
             for (const [name, schema] of Object.entries(this.schema.components.schemas)) {
-                if (schema.XAEPResource) {
-                    resources.push(new Resource(name, schema as typeof SchemaSchema));
+                if (Object.prototype.hasOwnProperty.call(schema, "x-aep-resource")) {
+                    resources.push(new Resource(schema["x-aep-resource"]["singular"], schema["x-aep-resource"]["plural"], schema));
                 }
             }
         }

@@ -11,9 +11,11 @@ import { Label } from "@/components/ui/label"
 import { OpenAPI } from "@/state/openapi";
 import { useSpec } from "@/state/StateContext";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function LoginForm() {
   const [state, setState] = useState('');
+  const navigate = useNavigate();
 
 
   const { spec, setSpec } = useSpec();
@@ -24,6 +26,7 @@ export function LoginForm() {
       const response = await fetch(state);
       const data = await response.json();
       setSpec!(new OpenAPI(data));
+      navigate("/explorer");
     } catch (error) {
       console.error("Failed to fetch OpenAPI spec:", error);
     }
