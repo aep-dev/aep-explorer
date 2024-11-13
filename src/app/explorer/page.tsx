@@ -1,15 +1,11 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import {
-} from "@/components/ui/breadcrumb"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar";
+import {} from "@/components/ui/breadcrumb";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useSpec } from "@/state/StateContext";
 import { Outlet } from "react-router-dom";
 
 export default function Page() {
-  const {spec, setSpec} = useSpec();
+  const { spec, setSpec } = useSpec();
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -25,5 +21,5 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

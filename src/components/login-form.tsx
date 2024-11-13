@@ -1,22 +1,21 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { OpenAPI } from "@/state/openapi";
 import { useSpec } from "@/state/StateContext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function LoginForm() {
-  const [state, setState] = useState('');
+  const [state, setState] = useState("");
   const navigate = useNavigate();
-
 
   const { spec, setSpec } = useSpec();
 
@@ -31,7 +30,6 @@ export function LoginForm() {
       console.error("Failed to fetch OpenAPI spec:", error);
     }
   };
-
 
   return (
     <Card className="mx-auto max-w-sm">
@@ -59,5 +57,5 @@ export function LoginForm() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

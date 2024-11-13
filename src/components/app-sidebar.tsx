@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,17 +9,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { useSpec } from "@/state/StateContext"
+} from "@/components/ui/sidebar";
+import { useSpec } from "@/state/StateContext";
 import { Link } from "react-router-dom";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const {spec, setSpec} = useSpec();
+  const { spec, setSpec } = useSpec();
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-      </SidebarHeader>
+      <SidebarHeader></SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Resources</SidebarGroupLabel>
@@ -38,5 +37,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

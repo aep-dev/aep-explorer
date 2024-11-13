@@ -1,5 +1,5 @@
-import { createContext, useContext } from 'react';
-import { OpenAPI } from './openapi';
+import { createContext, useContext } from "react";
+import { OpenAPI } from "./openapi";
 
 interface StateContext {
   spec: OpenAPI | null;
