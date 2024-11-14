@@ -1,3 +1,4 @@
+import "./App.css";
 import { useState } from "react";
 import { StateContext } from "./state/StateContext";
 import { OpenAPI } from "./state/openapi";
