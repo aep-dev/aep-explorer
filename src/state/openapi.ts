@@ -1,4 +1,6 @@
-class Resource {
+import {List, ResourceInstance} from './fetch';
+// Responsible for handling the schema for a given resource.
+class ResourceSchema {
   schema: any;
   singular_name: string;
   plural_name: string;
@@ -16,14 +18,32 @@ class Resource {
     this.server_url = server_url;
   }
 
-  list(): Promise<Array<object>> {
+  list(): Promise<ResourceInstance[]> {
     const url = `${this.server_url}${this.base_url()}`;
-    return fetch(url).then((response) => response.json());
+    return List(url);
   }
 
   base_url(): string {
     const pattern = this.schema["x-aep-resource"]["patterns"][0];
     return pattern.substring(0, pattern.lastIndexOf("/"));
+  }
+
+  properties(): PropertySchema[] {
+    const properties: PropertySchema[] = [];
+    for (const [name, schema] of Object.entries(this.schema.properties)) {
+      properties.push(new PropertySchema(name, schema.type));
+    }
+    return properties;
+  }
+}
+
+class PropertySchema {
+  name: string
+  type: string
+
+  constructor(name: string, type: string) {
+    this.name = name;
+    this.type = type;
   }
 }
 
@@ -34,8 +54,8 @@ class OpenAPI {
     this.schema = schema;
   }
 
-  resources(): Resource[] {
-    const resources: Resource[] = [];
+  resources(): ResourceSchema[] {
+    const resources: ResourceSchema[] = [];
 
     if (this.schema?.components?.schemas) {
       for (const [name, schema] of Object.entries(
@@ -43,7 +63,7 @@ class OpenAPI {
       )) {
         if (Object.prototype.hasOwnProperty.call(schema, "x-aep-resource")) {
           resources.push(
-            new Resource(
+            new ResourceSchema(
               schema["x-aep-resource"]["singular"],
               schema["x-aep-resource"]["plural"],
               schema,
@@ -56,14 +76,13 @@ class OpenAPI {
     return resources;
   }
 
-  resourceForName(plural: string): Resource {
+  resourceForName(plural: string): ResourceSchema {
     const resources = this.resources();
     for (const resource of resources) {
       if (resource.plural_name === plural) {
         return resource;
       }
     }
-    console.log(resources);
     throw new Error(`Resource not found: ${plural}`);
   }
 }
@@ -79,4 +98,4 @@ function parseOpenAPI(jsonString: string): OpenAPI {
   }
 }
 
-export { OpenAPI, parseOpenAPI };
+export { OpenAPI, parseOpenAPI, ResourceSchema };
