@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import {} from "@/components/ui/breadcrumb";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toaster";
 import { useSpec } from "@/state/StateContext";
 import { Outlet } from "react-router-dom";
 
@@ -19,6 +20,7 @@ export default function Page() {
           </div>
           <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
         </div>
+        <Toaster />
       </SidebarInset>
     </SidebarProvider>
   );
