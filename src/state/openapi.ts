@@ -20,7 +20,7 @@ class ResourceSchema {
 
   list(): Promise<ResourceInstance[]> {
     const url = `${this.server_url}${this.base_url()}`;
-    return List(url);
+    return List(url, this);
   }
 
   base_url(): string {
