@@ -44,4 +44,24 @@ async function Delete(url: string) {
   }
 }
 
-export {ResourceInstance, List}
+async function Create(url: string, contents: object) {
+try {
+  console.log(url);
+  console.log(contents);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(contents),
+    });
+    console.log(response);
+    if (!response.ok) {
+      toast({description: `Create failed with status ${response.status}`});
+    }
+  } catch (error) {
+    toast({description: `Failed to create resource: ${error instanceof Error ? error.message : String(error)}`});
+  }
+}
+
+export {ResourceInstance, List, Create}

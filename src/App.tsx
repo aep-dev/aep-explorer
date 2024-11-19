@@ -6,6 +6,7 @@ import SpecSpecifierPage from "./app/spec_specifier/page";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Page from "./app/explorer/page";
 import ResourceList from "./app/explorer/resource_list";
+import CreateForm from "./app/explorer/form";
 
 const router = createBrowserRouter([
   {
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
         path: "/explorer/:resourceId",
         element: <ResourceList />,
       },
+      {
+        path: "/explorer/:resourceId/create",
+        element: <CreateForm />
+      }
     ],
   },
 ]);
