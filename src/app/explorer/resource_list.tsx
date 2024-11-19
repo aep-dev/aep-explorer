@@ -9,7 +9,7 @@ import {
 import { ColumnDef } from "@tanstack/react-table"
 import { useSpec } from "@/state/StateContext";
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -102,7 +102,9 @@ export default function ResourceList() {
     return (
         <div>
             <h1>{resourceId}</h1>
-
+            <Link to={`/explorer/${resourceId}/create`}>
+                <span>Create</span>
+            </Link>
             <DataTable columns={createColumns(spec?.resourceForName(resourceId))} data={state.resources.map((resource) => resource.properties)} />
         </div>
     );

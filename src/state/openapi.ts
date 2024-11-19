@@ -1,4 +1,4 @@
-import {List, ResourceInstance} from './fetch';
+import {List, ResourceInstance, Create} from './fetch';
 // Responsible for handling the schema for a given resource.
 class ResourceSchema {
   schema: any;
@@ -21,6 +21,11 @@ class ResourceSchema {
   list(): Promise<ResourceInstance[]> {
     const url = `${this.server_url}${this.base_url()}`;
     return List(url, this);
+  }
+
+  create(body: object): Promise {
+    const url = `${this.server_url}${this.base_url()}?id=${body.id}`;
+    return Create(url, body);
   }
 
   base_url(): string {
@@ -98,4 +103,4 @@ function parseOpenAPI(jsonString: string): OpenAPI {
   }
 }
 
-export { OpenAPI, parseOpenAPI, ResourceSchema };
+export { OpenAPI, parseOpenAPI, ResourceSchema, PropertySchema };
