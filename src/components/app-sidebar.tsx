@@ -26,7 +26,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             {spec?.resources().map((resource) => (
               <SidebarMenuItem key={resource.singular_name}>
                 <SidebarMenuButton asChild>
-                  <Link to={`/explorer/${resource.plural_name}`}>
+                  <Link to={`${resource.base_url()}`}>
                     <span>{resource.plural_name}</span>
                   </Link>
                 </SidebarMenuButton>

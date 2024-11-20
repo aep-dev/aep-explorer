@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/hooks/use-toast";
 import { OpenAPI } from "@/state/openapi";
 import { useSpec } from "@/state/StateContext";
 import { useState } from "react";
@@ -25,9 +26,9 @@ export function LoginForm() {
       const response = await fetch(state);
       const data = await response.json();
       setSpec!(new OpenAPI(data));
-      navigate("/explorer");
+      navigate("/_explorer");
     } catch (error) {
-      console.error("Failed to fetch OpenAPI spec:", error);
+      toast({description: `Failed to fetch OpenAPI spec: ${error}`})
     }
   };
 

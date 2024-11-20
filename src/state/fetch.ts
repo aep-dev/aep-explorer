@@ -46,8 +46,6 @@ async function Delete(url: string) {
 
 async function Create(url: string, contents: object) {
 try {
-  console.log(url);
-  console.log(contents);
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -55,7 +53,6 @@ try {
       },
       body: JSON.stringify(contents),
     });
-    console.log(response);
     if (!response.ok) {
       toast({description: `Create failed with status ${response.status}`});
     }

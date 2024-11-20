@@ -22,10 +22,11 @@ type ResourceListState = {
     resources: ResourceInstance[],
 }
 
-export default function ResourceList() {
-    const { resourceId } = useParams();
-    const { spec, setSpec } = useSpec();
+type ResourceListProps = {
+    resource: ResourceSchema
+}
 
+export default function ResourceList(props: ResourceListProps) {
     const dropDownMenuColumn = {
         id: "actions",
         enableHiding: false,
@@ -81,9 +82,7 @@ export default function ResourceList() {
         }
     }
     const refreshList = useCallback(() => {
-        if (spec && resourceId) {
-            spec!
-                .resourceForName(resourceId)
+                props.resource
                 .list()
                 .then((resources) => {
                     if (resources) {
@@ -92,20 +91,19 @@ export default function ResourceList() {
                         });
                     }
                 });
-        }
-    }, [spec, resourceId]);  // Add dependencies
+    }, [props]);  // Add dependencies
 
     useEffect(() => {
         refreshList();
-    }, [spec, resourceId, refreshList]);
+    }, [props, refreshList]);
 
     return (
         <div>
-            <h1>{resourceId}</h1>
-            <Link to={`/explorer/${resourceId}/create`}>
+            <h1>{props.resource.singular_name}</h1>
+            <Link to={"_create"}>
                 <span>Create</span>
             </Link>
-            <DataTable columns={createColumns(spec?.resourceForName(resourceId))} data={state.resources.map((resource) => resource.properties)} />
+            <DataTable columns={createColumns(props.resource)} data={state.resources.map((resource) => resource.properties)} />
         </div>
     );
 }
