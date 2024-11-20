@@ -19,7 +19,7 @@ export default function CreateForm(props: CreateFormProps) {
         // Just need to submit it and navigate back to the list page.
         props.resource.create(value).then(() => {
             toast({description: `Created ${value.id}`});
-            navigate(`/${props.resource.base_url()}`)
+            navigate(-1);
         })
 
     });
