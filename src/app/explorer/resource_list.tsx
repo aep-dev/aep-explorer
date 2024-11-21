@@ -53,6 +53,11 @@ export default function ResourceList(props: ResourceListProps) {
                         >
                             <span>Info</span>
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => navigate(`${resource['id']}/_update`)}
+                        >
+                            <span>Update</span>
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )

@@ -18,6 +18,11 @@ class ResourceInstance {
     const url = `${this.schema.server_url}/${this.path}`
     return Delete(url);
   }
+
+  async update(value: object): Promise<void> {
+    const url = `${this.schema.server_url}/${this.path}`
+    return Patch(url, value);
+  }
 }
 
 async function List(url: string, r: ResourceSchema): Promise<ResourceInstance[]> {
@@ -71,6 +76,23 @@ try {
     }
   } catch (error) {
     toast({description: `Failed to create resource: ${error instanceof Error ? error.message : String(error)}`});
+  }
+}
+
+async function Patch(url: string, contents: object) {
+try {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(contents),
+    });
+    if (!response.ok) {
+      toast({description: `Patch failed with status ${response.status}`});
+    }
+  } catch (error) {
+    toast({description: `Failed to patch resource: ${error instanceof Error ? error.message : String(error)}`});
   }
 }
 
