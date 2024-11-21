@@ -8,6 +8,7 @@ import Page from "./app/explorer/page";
 import ResourceList from "./app/explorer/resource_list";
 import CreateForm from "./app/explorer/form";
 import InfoPage from "./app/explorer/info";
+import UpdateForm from "./app/explorer/update_form";
 
 function createRoutes(resources: ResourceSchema[]): RouteObject[] {
   let routes = [{
@@ -35,6 +36,10 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
         {
           path: `${resource.base_url()}/:resourceId`,
           element: <InfoPage resource={resource} />
+        },
+        {
+          path: `${resource.base_url()}/:resourceId/_update`,
+          element: <UpdateForm schema={resource} />
         }
       ]
     }).flat(1))
