@@ -7,6 +7,7 @@ import { createBrowserRouter, RouteObject, RouterProvider } from "react-router-d
 import Page from "./app/explorer/page";
 import ResourceList from "./app/explorer/resource_list";
 import CreateForm from "./app/explorer/form";
+import InfoPage from "./app/explorer/info";
 
 function createRoutes(resources: ResourceSchema[]): RouteObject[] {
   let routes = [{
@@ -30,6 +31,10 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
         {
           path: `${resource.base_url()}/_create`,
           element: <CreateForm resource={resource} />
+        },
+        {
+          path: `${resource.base_url()}/:resourceId`,
+          element: <InfoPage resource={resource} />
         }
       ]
     }).flat(1))

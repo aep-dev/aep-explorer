@@ -1,4 +1,4 @@
-import {List, ResourceInstance, Create} from './fetch';
+import {List, ResourceInstance, Create, Get} from './fetch';
 // Responsible for handling the schema for a given resource.
 class ResourceSchema {
   schema: any;
@@ -21,6 +21,11 @@ class ResourceSchema {
   list(): Promise<ResourceInstance[]> {
     const url = `${this.server_url}${this.base_url()}`;
     return List(url, this);
+  }
+
+  get(resourceId: string): Promise<ResourceInstance> {
+    const url = `${this.server_url}${this.base_url()}/${resourceId}`;
+    return Get(url, this);
   }
 
   create(body: object): Promise {

@@ -9,7 +9,7 @@ import {
 import { ColumnDef } from "@tanstack/react-table"
 import { useSpec } from "@/state/StateContext";
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ type ResourceListProps = {
 }
 
 export default function ResourceList(props: ResourceListProps) {
+    const navigate = useNavigate();
     const dropDownMenuColumn = {
         id: "actions",
         enableHiding: false,
@@ -46,6 +47,11 @@ export default function ResourceList(props: ResourceListProps) {
                             onClick={() => deleteResource(resource)}
                         >
                             <span className="text-red-600">Delete</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => navigate(resource['id'])}
+                        >
+                            <span>Info</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
