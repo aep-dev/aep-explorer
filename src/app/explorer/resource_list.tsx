@@ -9,7 +9,7 @@ import {
 import { ColumnDef } from "@tanstack/react-table"
 import { useSpec } from "@/state/StateContext";
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,12 @@ type ResourceListState = {
     resources: ResourceInstance[],
 }
 
-export default function ResourceList() {
-    const { resourceId } = useParams();
-    const { spec, setSpec } = useSpec();
+type ResourceListProps = {
+    resource: ResourceSchema
+}
 
+export default function ResourceList(props: ResourceListProps) {
+    const navigate = useNavigate();
     const dropDownMenuColumn = {
         id: "actions",
         enableHiding: false,
@@ -45,6 +47,11 @@ export default function ResourceList() {
                             onClick={() => deleteResource(resource)}
                         >
                             <span className="text-red-600">Delete</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => navigate(resource['id'])}
+                        >
+                            <span>Info</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -81,9 +88,7 @@ export default function ResourceList() {
         }
     }
     const refreshList = useCallback(() => {
-        if (spec && resourceId) {
-            spec!
-                .resourceForName(resourceId)
+                props.resource
                 .list()
                 .then((resources) => {
                     if (resources) {
@@ -92,20 +97,19 @@ export default function ResourceList() {
                         });
                     }
                 });
-        }
-    }, [spec, resourceId]);  // Add dependencies
+    }, [props]);  // Add dependencies
 
     useEffect(() => {
         refreshList();
-    }, [spec, resourceId, refreshList]);
+    }, [props, refreshList]);
 
     return (
         <div>
-            <h1>{resourceId}</h1>
-            <Link to={`/explorer/${resourceId}/create`}>
+            <h1>{props.resource.singular_name}</h1>
+            <Link to={"_create"}>
                 <span>Create</span>
             </Link>
-            <DataTable columns={createColumns(spec?.resourceForName(resourceId))} data={state.resources.map((resource) => resource.properties)} />
+            <DataTable columns={createColumns(props.resource)} data={state.resources.map((resource) => resource.properties)} />
         </div>
     );
 }

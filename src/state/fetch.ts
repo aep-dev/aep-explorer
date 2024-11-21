@@ -44,10 +44,21 @@ async function Delete(url: string) {
   }
 }
 
+async function Get(url: string, r: ResourceSchema): Promise<ResourceInstance> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+        toast({description: `Get failed with status ${response.status}`})
+    }
+    const result = await response.json();
+    return new ResourceInstance(result['id'], result['path'], result, r);
+  } catch (error) {
+    toast({description: `Failed to get resource: ${error instanceof Error ? error.message : String(error)}`});
+  }
+}
+
 async function Create(url: string, contents: object) {
 try {
-  console.log(url);
-  console.log(contents);
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -55,7 +66,6 @@ try {
       },
       body: JSON.stringify(contents),
     });
-    console.log(response);
     if (!response.ok) {
       toast({description: `Create failed with status ${response.status}`});
     }
@@ -64,4 +74,4 @@ try {
   }
 }
 
-export {ResourceInstance, List, Create}
+export {ResourceInstance, List, Create, Get}
