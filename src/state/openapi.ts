@@ -18,17 +18,17 @@ class ResourceSchema {
     this.server_url = server_url;
   }
 
-  list(): Promise<ResourceInstance[]> {
+  list(headers: string = ""): Promise<ResourceInstance[]> {
     const url = `${this.server_url}${this.base_url()}`;
-    return List(url, this);
+    return List(url, this, headers);
   }
 
-  get(resourceId: string): Promise<ResourceInstance> {
+  get(resourceId: string, headers: string = ""): Promise<ResourceInstance> {
     const url = `${this.server_url}${this.base_url()}/${resourceId}`;
-    return Get(url, this);
+    return Get(url, this, headers);
   }
 
-  create(body: object): Promise {
+  create(body: object, headers: string = ""): Promise {
     const url = `${this.server_url}${this.base_url()}?id=${body.id}`;
     return Create(url, body);
   }

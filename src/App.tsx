@@ -1,6 +1,6 @@
 import "./App.css";
 import { useState } from "react";
-import { StateContext } from "./state/StateContext";
+import { HeadersContext, StateContext } from "./state/StateContext";
 import { OpenAPI, ResourceSchema } from "./state/openapi";
 import SpecSpecifierPage from "./app/spec_specifier/page";
 import { createBrowserRouter, RouteObject, RouterProvider } from "react-router-dom";
@@ -49,9 +49,12 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
 
 function App() {
   const [state, setState] = useState(new OpenAPI({}));
+  const [headers, setHeaders] = useState("");
   return (
-    <StateContext.Provider value={{ spec: state, setSpec: setState  }}>
-      <RouterProvider router={createBrowserRouter(createRoutes(state.resources()))} />
+    <StateContext.Provider value={{ spec: state, setSpec: setState}}>
+      <HeadersContext.Provider value={{ headers: headers, setHeaders: setHeaders}}>
+        <RouterProvider router={createBrowserRouter(createRoutes(state.resources()))} />
+      </HeadersContext.Provider>
     </StateContext.Provider>
   );
 }

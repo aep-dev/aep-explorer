@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { useSpec } from "@/state/StateContext";
+import { useHeaders, useSpec } from "@/state/StateContext";
 import { Link } from "react-router-dom";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -34,8 +34,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             ))}
           </SidebarMenu>
         </SidebarGroup>
+        <p>Headers</p>
+        <p>key:value, comma-deliniated</p>
+        <TextBoxComponent />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
+  );
+}
+
+export function TextBoxComponent() {
+  const {headers, setHeaders} = useHeaders();
+
+  const handleTextChange = (event) => {
+    setHeaders(event.target.value);
+  };
+
+  return (
+    <input type="text" value={headers!} onChange={handleTextChange} />
   );
 }
