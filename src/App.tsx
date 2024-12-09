@@ -4,7 +4,7 @@ import { StateContext } from "./state/StateContext";
 import { OpenAPI, ResourceSchema } from "./state/openapi";
 import SpecSpecifierPage from "./app/spec_specifier/page";
 import { createBrowserRouter, RouteObject, RouterProvider } from "react-router-dom";
-import Page from "./app/explorer/page";
+import Layout from "./app/explorer/page";
 import ResourceList from "./app/explorer/resource_list";
 import CreateForm from "./app/explorer/form";
 import InfoPage from "./app/explorer/info";
@@ -13,7 +13,7 @@ import UpdateForm from "./app/explorer/update_form";
 function createRoutes(resources: ResourceSchema[]): RouteObject[] {
   let routes = [{
     path: "/",
-    element: <Page />,
+    element: <Layout />,
     children: [
       {
         path: "/",
@@ -21,7 +21,7 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
       },
       {
         path: "/_explorer",
-        element: <Page />,
+        element: <div />,
       },
     ].concat(resources.map((resource) => {
       return [
@@ -44,8 +44,6 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
       ]
     }).flat(1))
   }];
-  console.log("my routes");
-  console.log(routes);
   return routes;
 }
 

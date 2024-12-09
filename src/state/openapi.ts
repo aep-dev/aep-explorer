@@ -35,7 +35,11 @@ class ResourceSchema {
 
   base_url(): string {
     const pattern = this.schema["x-aep-resource"]["patterns"][0];
-    return pattern.substring(0, pattern.lastIndexOf("/"));
+    const subset = pattern.substring(0, pattern.lastIndexOf("/"));
+    if(subset[0] != "/") {
+      return "/" + subset;
+    }
+    return subset;
   }
 
   properties(): PropertySchema[] {
