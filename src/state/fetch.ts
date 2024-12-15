@@ -14,19 +14,30 @@ class ResourceInstance {
     this.schema = r;
   }
 
-  async delete() {
+  async delete(headers: string = "") {
     const url = `${this.schema.server_url}/${this.path}`
-    return Delete(url);
+    return Delete(url, headers);
   }
 
-  async update(value: object): Promise<void> {
+  async update(value: object, headers: string = ""): Promise<void> {
     const url = `${this.schema.server_url}/${this.path}`
-    return Patch(url, value);
+    return Patch(url, value, headers);
   }
 }
 
-async function List(url: string, r: ResourceSchema): Promise<ResourceInstance[]> {
-    let response = await fetch(url);
+function getHeaders(headers: string): object {
+  const headersMap = new Map();
+  const headersArray = headers.split(',');
+  headersArray.forEach(header => {
+    const [key, value] = header.split(':');
+    headersMap.set(key.trim(), value.trim());
+  });
+  return headersMap;
+
+}
+
+async function List(url: string, r: ResourceSchema, headersString: string = ""): Promise<ResourceInstance[]> {
+    let response = await fetch(url, {headers: getHeaders(headersString)});
     const results: ResourceInstance[] = [];
     const list_response = await response.json();
     for(const result of list_response.results) {
@@ -35,10 +46,11 @@ async function List(url: string, r: ResourceSchema): Promise<ResourceInstance[]>
     return results;
 }
 
-async function Delete(url: string) {
+async function Delete(url: string, headers: string = "") {
   try {
     const response = await fetch(url, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getHeaders(headers)
     });
     if (!response.ok) {
         toast({description: `Delete failed with status ${response.status}`})
@@ -49,9 +61,9 @@ async function Delete(url: string) {
   }
 }
 
-async function Get(url: string, r: ResourceSchema): Promise<ResourceInstance> {
+async function Get(url: string, r: ResourceSchema, headersString: string = ""): Promise<ResourceInstance> {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { headers: getHeaders(headersString)});
     if (!response.ok) {
         toast({description: `Get failed with status ${response.status}`})
     }
@@ -62,13 +74,11 @@ async function Get(url: string, r: ResourceSchema): Promise<ResourceInstance> {
   }
 }
 
-async function Create(url: string, contents: object) {
+async function Create(url: string, contents: object, headersString: string = "") {
 try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(headersString),
       body: JSON.stringify(contents),
     });
     if (!response.ok) {
@@ -79,13 +89,11 @@ try {
   }
 }
 
-async function Patch(url: string, contents: object) {
+async function Patch(url: string, contents: object, headersString: string = "") {
 try {
     const response = await fetch(url, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(headersString),
       body: JSON.stringify(contents),
     });
     if (!response.ok) {

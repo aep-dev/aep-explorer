@@ -5,6 +5,7 @@ import { useMemo, } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { useHeaders } from "@/state/StateContext";
 
 type CreateFormProps = {
     resource: ResourceSchema
@@ -14,10 +15,12 @@ export default function CreateForm(props: CreateFormProps) {
     const form = useForm();
     const navigate = useNavigate();
 
+    const {headers, setHeaders} = useHeaders();
+
     const onSubmit = ((value) => {
         // Value is the properly formed JSON body.
         // Just need to submit it and navigate back to the list page.
-        props.resource.create(value).then(() => {
+        props.resource.create(value, headers).then(() => {
             toast({description: `Created ${value.id}`});
             navigate(-1);
         })

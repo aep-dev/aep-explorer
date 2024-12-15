@@ -1,10 +1,10 @@
 import "./App.css";
 import { useState } from "react";
-import { StateContext } from "./state/StateContext";
+import { HeadersContext, StateContext } from "./state/StateContext";
 import { OpenAPI, ResourceSchema } from "./state/openapi";
 import SpecSpecifierPage from "./app/spec_specifier/page";
 import { createBrowserRouter, RouteObject, RouterProvider } from "react-router-dom";
-import Page from "./app/explorer/page";
+import Layout from "./app/explorer/page";
 import ResourceList from "./app/explorer/resource_list";
 import CreateForm from "./app/explorer/form";
 import InfoPage from "./app/explorer/info";
@@ -13,7 +13,7 @@ import UpdateForm from "./app/explorer/update_form";
 function createRoutes(resources: ResourceSchema[]): RouteObject[] {
   let routes = [{
     path: "/",
-    element: <Page />,
+    element: <Layout />,
     children: [
       {
         path: "/",
@@ -21,7 +21,7 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
       },
       {
         path: "/_explorer",
-        element: <Page />,
+        element: <div />,
       },
     ].concat(resources.map((resource) => {
       return [
@@ -44,16 +44,17 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
       ]
     }).flat(1))
   }];
-  console.log("my routes");
-  console.log(routes);
   return routes;
 }
 
 function App() {
   const [state, setState] = useState(new OpenAPI({}));
+  const [headers, setHeaders] = useState("");
   return (
-    <StateContext.Provider value={{ spec: state, setSpec: setState  }}>
-      <RouterProvider router={createBrowserRouter(createRoutes(state.resources()))} />
+    <StateContext.Provider value={{ spec: state, setSpec: setState}}>
+      <HeadersContext.Provider value={{ headers: headers, setHeaders: setHeaders}}>
+        <RouterProvider router={createBrowserRouter(createRoutes(state.resources()))} />
+      </HeadersContext.Provider>
     </StateContext.Provider>
   );
 }
