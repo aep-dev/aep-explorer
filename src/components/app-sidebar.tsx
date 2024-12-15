@@ -5,6 +5,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarInput,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -51,6 +52,6 @@ export function TextBoxComponent() {
   };
 
   return (
-    <input type="text" value={headers!} onChange={handleTextChange} />
+    <SidebarInput type="text" value={headers!} onChange={handleTextChange} />
   );
 }

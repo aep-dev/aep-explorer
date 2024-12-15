@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { ColumnDef } from "@tanstack/react-table"
-import { useSpec } from "@/state/StateContext";
+import { useHeaders, useSpec } from "@/state/StateContext";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
@@ -83,6 +83,8 @@ export default function ResourceList(props: ResourceListProps) {
             resources: [],
         });
 
+    const {headers, setHeaders} = useHeaders();
+
     function deleteResource(r: object) {
         const result = state?.resources.find((result: ResourceInstance) => result.id === r.id);
         if(result) {
@@ -94,7 +96,7 @@ export default function ResourceList(props: ResourceListProps) {
     }
     const refreshList = useCallback(() => {
                 props.resource
-                .list()
+                .list(headers)
                 .then((resources) => {
                     if (resources) {
                         setState({
