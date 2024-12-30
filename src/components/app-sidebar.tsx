@@ -11,11 +11,13 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { useHeaders, useSpec } from "@/state/StateContext";
 import { Link } from "react-router-dom";
+import { useAppSelector } from "@/hooks/store";
+import { selectResources } from "@/state/store";
+import { useHeaders } from "@/state/StateContext";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { spec, setSpec } = useSpec();
+  const resources = useAppSelector(selectResources);
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -24,7 +26,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <SidebarGroupLabel>Resources</SidebarGroupLabel>
           <SidebarMenu>
-            {spec?.resources().map((resource) => (
+            {resources.map((resource) => (
               <SidebarMenuItem key={resource.singular_name}>
                 <SidebarMenuButton asChild>
                   <Link to={`${resource.base_url()}`}>

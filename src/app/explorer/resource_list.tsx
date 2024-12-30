@@ -1,15 +1,5 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { ColumnDef } from "@tanstack/react-table"
-import { useHeaders, useSpec } from "@/state/StateContext";
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -17,6 +7,7 @@ import { MoreHorizontal } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { ResourceSchema } from "@/state/openapi";
 import { ResourceInstance } from "@/state/fetch";
+import { useHeaders } from "@/state/StateContext";
 
 type ResourceListState = {
     resources: ResourceInstance[],

@@ -8,24 +8,24 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAppDispatch } from "@/hooks/store";
 import { toast } from "@/hooks/use-toast";
 import { OpenAPI } from "@/state/openapi";
-import { useSpec } from "@/state/StateContext";
+import { setSchema } from "@/state/store";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function LoginForm() {
   const [state, setState] = useState("");
   const navigate = useNavigate();
-
-  const { spec, setSpec } = useSpec();
+  const dispatch = useAppDispatch();
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
       const response = await fetch(state);
       const data = await response.json();
-      setSpec!(new OpenAPI(data));
+      dispatch(setSchema(new OpenAPI(data)));
       navigate("/_explorer");
     } catch (error) {
       toast({description: `Failed to fetch OpenAPI spec: ${error}`})

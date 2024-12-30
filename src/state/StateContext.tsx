@@ -11,8 +11,6 @@ export const StateContext = createContext<StateContext>({
   setSpec: null,
 });
 
-export const useSpec = () => useContext(StateContext);
-
 interface HeadersContext {
   headers: string | null;
   setHeaders: ((headers: string) => void) | null;
