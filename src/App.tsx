@@ -1,7 +1,5 @@
 import "./App.css";
-import { useState } from "react";
-import { HeadersContext, StateContext } from "./state/StateContext";
-import { OpenAPI, ResourceSchema } from "./state/openapi";
+import { ResourceSchema } from "./state/openapi";
 import SpecSpecifierPage from "./app/spec_specifier/page";
 import { createBrowserRouter, RouteObject, RouterProvider } from "react-router-dom";
 import Layout from "./app/explorer/page";
@@ -10,8 +8,12 @@ import CreateForm from "./app/explorer/form";
 import InfoPage from "./app/explorer/info";
 import UpdateForm from "./app/explorer/update_form";
 
+import { selectResources, store } from './state/store';
+import { Provider } from 'react-redux'
+import { useAppSelector } from "./hooks/store";
+
 function createRoutes(resources: ResourceSchema[]): RouteObject[] {
-  let routes = [{
+  const routes = [{
     path: "/",
     element: <Layout />,
     children: [
@@ -48,6 +50,7 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
 }
 
 function App() {
+<<<<<<< HEAD
   const [state, setState] = useState(new OpenAPI({}));
   const [headers, setHeaders] = useState("");
   return (
@@ -56,7 +59,20 @@ function App() {
         <RouterProvider router={createBrowserRouter(createRoutes(state.resources()))} />
       </HeadersContext.Provider>
     </StateContext.Provider>
+=======
+  return (
+    <Provider store={store} >
+      <Routes />
+    </Provider>
+>>>>>>> 712ccf0 (redux store should be in place...)
   );
+}
+
+function Routes() {
+  const resources = useAppSelector(selectResources);
+  return (
+      <RouterProvider router={createBrowserRouter(createRoutes(resources))} />
+  )
 }
 
 export default App;

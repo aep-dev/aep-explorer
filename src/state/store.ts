@@ -20,12 +20,25 @@ const schemaSlice = createSlice({
   }
 })
 
-export const store = configureStore({
+const {setSchema} = schemaSlice.actions;
+const schemaReducer = schemaSlice.reducer;
+
+const store = configureStore({
     reducer: {
-        schema: schemaSlice.reducer,
+        schema: schemaReducer,
     }
 })
-export const { setSchema } = schemaSlice.actions
+
+export const selectResources = (state: RootState) => {
+  if (state.schema.value) {
+    return state.schema.value.resources();
+  } else {
+    return [];
+  }
+}
+
+export {setSchema, schemaReducer, store}
+
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>
