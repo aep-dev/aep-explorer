@@ -11,8 +11,6 @@ import UpdateForm from "./app/explorer/update_form";
 import { selectResources, store } from './state/store';
 import { Provider } from 'react-redux'
 import { useAppSelector } from "./hooks/store";
-import { HeadersContext } from "./state/StateContext";
-import { useState } from "react";
 
 function createRoutes(resources: ResourceSchema[]): RouteObject[] {
   const routes = [{
@@ -52,12 +50,9 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
 }
 
 function App() {
-  const [headers, setHeaders] = useState("");
   return (
     <Provider store={store} >
-      <HeadersContext.Provider value={{ headers: headers, setHeaders: setHeaders}}>
         <Routes />
-      </HeadersContext.Provider>
     </Provider>
   );
 }

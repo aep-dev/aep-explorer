@@ -13,9 +13,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
-import { useAppSelector } from "@/hooks/store";
-import { selectResources } from "@/state/store";
-import { useHeaders } from "@/state/StateContext";
+import { useAppDispatch, useAppSelector } from "@/hooks/store";
+import { selectHeaders, selectResources, setHeaders } from "@/state/store";
 import { Label } from "./ui/label";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -48,10 +47,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 
 export function HeadersInput() {
-  const { headers, setHeaders } = useHeaders();
+  const headers = useAppSelector(selectHeaders);
+  const dispatch = useAppDispatch();
 
   const handleTextChange = (event) => {
-    setHeaders(event.target.value);
+    dispatch(setHeaders(event.target.value));
   };
 
   return (

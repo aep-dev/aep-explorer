@@ -5,7 +5,9 @@ import { useMemo, } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { useHeaders } from "@/state/StateContext";
+import { useAppSelector } from "@/hooks/store";
+import { selectHeaders } from "@/state/store";
+import { ResourceSchema } from "@/state/openapi";
 
 type CreateFormProps = {
     resource: ResourceSchema
@@ -15,7 +17,7 @@ export default function CreateForm(props: CreateFormProps) {
     const form = useForm();
     const navigate = useNavigate();
 
-    const {headers, setHeaders} = useHeaders();
+    const headers = useAppSelector(selectHeaders);
 
     const onSubmit = ((value) => {
         // Value is the properly formed JSON body.
