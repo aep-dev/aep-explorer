@@ -7,7 +7,8 @@ import { MoreHorizontal } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { ResourceSchema } from "@/state/openapi";
 import { ResourceInstance } from "@/state/fetch";
-import { useHeaders } from "@/state/StateContext";
+import { selectHeaders } from "@/state/store";
+import { useAppSelector } from "@/hooks/store";
 
 type ResourceListState = {
     resources: ResourceInstance[],
@@ -57,7 +58,7 @@ export default function ResourceList(props: ResourceListProps) {
 
     function createColumns(r: ResourceSchema | undefined): object[] {
         if(r) {
-            let columns = r.properties().map((prop) => {
+            const columns = r.properties().map((prop) => {
                 return {accessorKey: prop.name, header: prop.name}
             });
             columns.push(dropDownMenuColumn);
@@ -74,7 +75,7 @@ export default function ResourceList(props: ResourceListProps) {
             resources: [],
         });
 
-    const {headers, setHeaders} = useHeaders();
+    const headers = useAppSelector(selectHeaders);
 
     function deleteResource(r: object) {
         const result = state?.resources.find((result: ResourceInstance) => result.id === r.id);

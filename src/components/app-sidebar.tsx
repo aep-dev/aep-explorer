@@ -3,6 +3,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarInput,
@@ -12,16 +13,18 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
-import { useAppSelector } from "@/hooks/store";
-import { selectResources } from "@/state/store";
-import { useHeaders } from "@/state/StateContext";
+import { useAppDispatch, useAppSelector } from "@/hooks/store";
+import { selectHeaders, selectResources, setHeaders } from "@/state/store";
+import { Label } from "./ui/label";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const resources = useAppSelector(selectResources);
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader></SidebarHeader>
+      <SidebarHeader>
+        <HeadersInput />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Resources</SidebarGroupLabel>
@@ -37,23 +40,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             ))}
           </SidebarMenu>
         </SidebarGroup>
-        <p>Headers</p>
-        <p>key:value, comma-deliniated</p>
-        <TextBoxComponent />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
   );
 }
 
-export function TextBoxComponent() {
-  const {headers, setHeaders} = useHeaders();
+export function HeadersInput() {
+  const headers = useAppSelector(selectHeaders);
+  const dispatch = useAppDispatch();
 
   const handleTextChange = (event) => {
-    setHeaders(event.target.value);
+    dispatch(setHeaders(event.target.value));
   };
 
   return (
-    <SidebarInput type="text" value={headers!} onChange={handleTextChange} />
+    <form>
+      <SidebarGroup className="py-0">
+        <SidebarGroupContent className="relative">
+          <Label htmlFor="headers" className="sr-only">
+            Headers
+          </Label>
+          <SidebarInput id="headers"
+            placeholder="Headers - Key:value, comma-delineated"
+            type="text"
+            value={headers!}
+            onChange={handleTextChange} />
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </form>
   );
 }
