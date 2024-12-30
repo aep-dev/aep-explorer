@@ -3,12 +3,10 @@ import AppBreadcrumb from "@/components/breadcrumb";
 import {} from "@/components/ui/breadcrumb";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import { useSpec } from "@/state/StateContext";
 import { Separator } from "@radix-ui/react-separator";
 import { Outlet } from "react-router-dom";
 
 export default function Layout() {
-  const { spec, setSpec } = useSpec();
   return (
     <SidebarProvider>
       <AppSidebar />

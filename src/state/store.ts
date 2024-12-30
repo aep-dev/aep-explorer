@@ -30,7 +30,7 @@ const store = configureStore({
 })
 
 export const selectResources = (state: RootState) => {
-  if (state.schema.value) {
+  if (state.schema.value != null) {
     return state.schema.value.resources();
   } else {
     return [];

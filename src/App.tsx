@@ -11,6 +11,8 @@ import UpdateForm from "./app/explorer/update_form";
 import { selectResources, store } from './state/store';
 import { Provider } from 'react-redux'
 import { useAppSelector } from "./hooks/store";
+import { HeadersContext } from "./state/StateContext";
+import { useState } from "react";
 
 function createRoutes(resources: ResourceSchema[]): RouteObject[] {
   const routes = [{
@@ -50,21 +52,13 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
 }
 
 function App() {
-<<<<<<< HEAD
-  const [state, setState] = useState(new OpenAPI({}));
   const [headers, setHeaders] = useState("");
   return (
-    <StateContext.Provider value={{ spec: state, setSpec: setState}}>
-      <HeadersContext.Provider value={{ headers: headers, setHeaders: setHeaders}}>
-        <RouterProvider router={createBrowserRouter(createRoutes(state.resources()))} />
-      </HeadersContext.Provider>
-    </StateContext.Provider>
-=======
-  return (
     <Provider store={store} >
-      <Routes />
+      <HeadersContext.Provider value={{ headers: headers, setHeaders: setHeaders}}>
+        <Routes />
+      </HeadersContext.Provider>
     </Provider>
->>>>>>> 712ccf0 (redux store should be in place...)
   );
 }
 

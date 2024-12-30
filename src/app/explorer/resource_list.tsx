@@ -7,6 +7,7 @@ import { MoreHorizontal } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { ResourceSchema } from "@/state/openapi";
 import { ResourceInstance } from "@/state/fetch";
+import { useHeaders } from "@/state/StateContext";
 
 type ResourceListState = {
     resources: ResourceInstance[],

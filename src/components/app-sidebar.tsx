@@ -14,6 +14,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAppSelector } from "@/hooks/store";
 import { selectResources } from "@/state/store";
+import { useHeaders } from "@/state/StateContext";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const resources = useAppSelector(selectResources);
@@ -28,7 +29,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             {resources.map((resource) => (
               <SidebarMenuItem key={resource.singular_name}>
                 <SidebarMenuButton asChild>
-                  <Link to={`/${resource.base_url()}`}>
+                  <Link to={`${resource.base_url()}`}>
                     <span>{resource.plural_name}</span>
                   </Link>
                 </SidebarMenuButton>
