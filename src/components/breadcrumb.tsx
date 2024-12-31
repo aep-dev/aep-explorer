@@ -8,12 +8,12 @@ export default function AppBreadcrumb() {
     const breadcrumbs = useMatches();
     const resources = useAppSelector(selectResources);
 
-    console.log(createRouteObjects(resources));
+    const routeObjects = createRouteObjects(resources);
 
     const breadcrumb_elements = [];
     for(const i of breadcrumbs) {
         breadcrumb_elements.push(<BreadcrumbItem className="hidden md:block">
-                        <BreadcrumbPage>{i.pathname}</BreadcrumbPage>
+                        <BreadcrumbPage>{routeObjects[i.pathname]}</BreadcrumbPage>
                     </BreadcrumbItem>);
         breadcrumb_elements.push(<BreadcrumbSeparator className="hidden md:block" />);
     }

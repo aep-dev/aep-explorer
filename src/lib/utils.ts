@@ -7,8 +7,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function createRouteObjects(resources: ResourceSchema[]): object {
+  let base = {
+    '/': 'Home',
+  }
   if(resources === null) {
-    return {};
+    return base;
   }
   return resources.reduce((acc, resource) => {
     acc[resource.base_url()] = `${resource.plural_name}`;
@@ -16,5 +19,5 @@ export function createRouteObjects(resources: ResourceSchema[]): object {
     acc[`${resource.base_url()}/:resourceId`] = `${resource.singular_name} Info`;
     acc[`${resource.base_url()}/:resourceId/_update`] = `${resource.singular_name} Update`;
     return acc;
-  }, {});
+  }, base);
 }
