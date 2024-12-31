@@ -1,8 +1,14 @@
 import { useMatches } from "react-router-dom";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "./ui/breadcrumb"
+import { createRouteObjects } from "@/lib/utils";
+import { useAppSelector } from "@/hooks/store";
+import { selectResources } from "@/state/store";
 
 export default function AppBreadcrumb() {
     const breadcrumbs = useMatches();
+    const resources = useAppSelector(selectResources);
+
+    console.log(createRouteObjects(resources));
 
     const breadcrumb_elements = [];
     for(const i of breadcrumbs) {

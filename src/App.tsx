@@ -21,10 +21,6 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
         path: "/",
         element: <SpecSpecifierPage />,
       },
-      {
-        path: "/_explorer",
-        element: <div />,
-      },
     ].concat(resources.map((resource) => {
       return [
         {
