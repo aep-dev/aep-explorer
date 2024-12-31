@@ -5,10 +5,12 @@ import { OpenAPI } from './openapi'
 // Schema reducers + selectors.
 interface SchemaState {
   value: OpenAPI | null
+  state: 'unset' | 'set'
 }
 
 const initialState: SchemaState = {
-  value: null
+  value: null,
+  state: 'unset'
 }
 
 const schemaSlice = createSlice({
@@ -17,6 +19,7 @@ const schemaSlice = createSlice({
   reducers: {
     setSchema: (state, action: PayloadAction<OpenAPI>) => {
       state.value = action.payload
+      state.state = 'set';
     }
   }
 })
@@ -31,6 +34,8 @@ export const selectResources = (state: RootState) => {
     return [];
   }
 }
+
+export const schemaState = (state: RootState) => state.schema.state
 
 // Headers reducers + selectors.
 interface HeadersState {
@@ -55,8 +60,6 @@ const {setHeaders} = headersSlice.actions;
 const headersReducer = headersSlice.reducer;
 
 export const selectHeaders = (state: RootState) => state.headers.value;
-
-
 
 // Store
 const store = configureStore({

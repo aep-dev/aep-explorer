@@ -13,11 +13,9 @@ import { toast } from "@/hooks/use-toast";
 import { OpenAPI } from "@/state/openapi";
 import { setSchema } from "@/state/store";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 export function LoginForm() {
   const [state, setState] = useState("");
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
   const onSubmit = async (event: React.FormEvent) => {
@@ -26,7 +24,6 @@ export function LoginForm() {
       const response = await fetch(state);
       const data = await response.json();
       dispatch(setSchema(new OpenAPI(data)));
-      navigate("/_explorer");
     } catch (error) {
       toast({description: `Failed to fetch OpenAPI spec: ${error}`})
     }
