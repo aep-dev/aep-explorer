@@ -26,6 +26,11 @@ class ResourceInstance {
 }
 
 function getHeaders(headers: string): object {
+  if(!headers) {
+    return new Map();
+  }
+
+  console.log("headers " + headers)
   const headersMap = new Map();
   const headersArray = headers.split(',');
   headersArray.forEach(header => {
