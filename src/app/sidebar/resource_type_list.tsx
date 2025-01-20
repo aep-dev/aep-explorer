@@ -12,15 +12,25 @@ export function ResourceTypeList(props: ResourceTypeListProps) {
             <SidebarGroupLabel>Resources</SidebarGroupLabel>
             <SidebarMenu>
                 {props.resources.map((resource: ResourceSchema) => (
-                    <SidebarMenuItem key={resource.singular_name}>
-                        <SidebarMenuButton asChild>
-                            <Link to={`${resource.base_url()}`}>
-                                <span>{resource.plural_name}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    <ResourceMenuItem resource={resource} />
                 ))}
             </SidebarMenu>
         </SidebarGroup>
     );
+}
+
+type ResourceMenuItemProps = {
+    resource: ResourceSchema
+};
+
+function ResourceMenuItem(props: ResourceMenuItemProps) {
+    return (
+        <SidebarMenuItem key={props.resource.singular_name}>
+            <SidebarMenuButton asChild>
+                <Link to={`${props.resource.base_url()}`}>
+                    <span>{props.resource.plural_name}</span>
+                </Link>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
+    )
 }
