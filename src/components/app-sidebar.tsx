@@ -4,18 +4,14 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarInput,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { selectHeaders, selectResources, setHeaders } from "@/state/store";
 import { Label } from "./ui/label";
+import { ResourceTypeList } from "@/app/sidebar/resource_type_list";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const resources = useAppSelector(selectResources);
@@ -26,20 +22,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <HeadersInput />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Resources</SidebarGroupLabel>
-          <SidebarMenu>
-            {resources.map((resource) => (
-              <SidebarMenuItem key={resource.singular_name}>
-                <SidebarMenuButton asChild>
-                  <Link to={`${resource.base_url()}`}>
-                    <span>{resource.plural_name}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        <ResourceTypeList resources={resources} />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
