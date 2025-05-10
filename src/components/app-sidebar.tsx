@@ -50,7 +50,7 @@ export function HeadersInput() {
   const headers = useAppSelector(selectHeaders);
   const dispatch = useAppDispatch();
 
-  const handleTextChange = (event) => {
+  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setHeaders(event.target.value));
   };
 
@@ -61,8 +61,9 @@ export function HeadersInput() {
           <Label htmlFor="headers" className="sr-only">
             Headers
           </Label>
-          <SidebarInput id="headers"
-            placeholder="Headers - Key:value, comma-delineated"
+          <SidebarInput
+            id="headers"
+            placeholder="Headers"
             type="text"
             value={headers!}
             onChange={handleTextChange} />
