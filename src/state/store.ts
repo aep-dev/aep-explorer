@@ -35,6 +35,14 @@ export const selectResources = (state: RootState) => {
   }
 }
 
+export const selectParentResources = (state: RootState) => {
+  if (state.schema.value != null) {
+    return state.schema.value.parentResources();
+  } else {
+    return [];
+  }
+}
+
 export const schemaState = (state: RootState) => state.schema.state
 
 // Headers reducers + selectors.
