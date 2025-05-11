@@ -1,4 +1,3 @@
-import "./App.css";
 import { ResourceSchema } from "./state/openapi";
 import SpecSpecifierPage from "./app/spec_specifier/page";
 import { createBrowserRouter, RouteObject, RouterProvider } from "react-router-dom";

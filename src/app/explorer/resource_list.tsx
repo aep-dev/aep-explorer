@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { ResourceSchema } from "@/state/openapi";
@@ -105,9 +105,7 @@ export default function ResourceList(props: ResourceListProps) {
     return (
         <div>
             <h1>{props.resource.singular_name}</h1>
-            <Link to={"_create"}>
-                <span>Create</span>
-            </Link>
+            <Link to={"_create"} className={buttonVariants({ variant: "default" })}>Create</Link>
             <DataTable columns={createColumns(props.resource)} data={state.resources.map((resource) => resource.properties)} />
         </div>
     );
