@@ -104,7 +104,7 @@ export default function ResourceList(props: ResourceListProps) {
 
     return (
         <div>
-            <h1>{props.resource.singular_name}</h1>
+            <h1>{props.resource.plural_name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</h1>
             <Link to={"_create"} className={buttonVariants({ variant: "default" })}>Create</Link>
             <DataTable columns={createColumns(props.resource)} data={state.resources.map((resource) => resource.properties)} />
         </div>
