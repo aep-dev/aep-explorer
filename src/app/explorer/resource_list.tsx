@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Plus, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { ResourceSchema } from "@/state/openapi";
 import { ResourceInstance } from "@/state/fetch";
@@ -104,8 +104,17 @@ export default function ResourceList(props: ResourceListProps) {
 
     return (
         <div>
-            <h1>{props.resource.singular_name}</h1>
-            <Link to={"_create"} className={buttonVariants({ variant: "default" })}>Create</Link>
+            <div className="flex items-center justify-between mb-4">
+                <h1>{props.resource.plural_name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</h1>
+                <div className="flex gap-2">
+                    <Button variant="outline" size="icon" onClick={() => navigate("_create")}>
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={refreshList}>
+                        <RefreshCw className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
             <DataTable columns={createColumns(props.resource)} data={state.resources.map((resource) => resource.properties)} />
         </div>
     );
