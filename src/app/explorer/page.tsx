@@ -16,7 +16,9 @@ export default function Layout() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <AppBreadcrumb />
         </header>
-        <Outlet />
+        <div className="p-4">
+          <Outlet />
+        </div>
         <Toaster />
       </SidebarInset>
     </SidebarProvider>
