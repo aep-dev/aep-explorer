@@ -23,7 +23,7 @@ export default function CreateForm(props: CreateFormProps) {
         // Value is the properly formed JSON body.
         // Just need to submit it and navigate back to the list page.
         props.resource.create(value, headers).then(() => {
-            toast({description: `Created ${value.id}`});
+            toast({description: `Created new resource`});
             navigate(-1);
         })
 

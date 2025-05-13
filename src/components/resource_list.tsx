@@ -13,16 +13,25 @@ type ResourceListTableProps = {
     onRefresh: () => void;
 }
 
+type ColumnDef = {
+    accessorKey: string;
+    header: string;
+    accessorFn?: (row: ResourceInstance) => string | number | boolean | null;
+    id?: string;
+    enableHiding?: boolean;
+    cell?: ({ row }: { row: { original: ResourceInstance } }) => JSX.Element;
+}
+
 export function ResourceListTable({ resource, resources, onRefresh }: ResourceListTableProps) {
     const navigate = useNavigate();
     
-    const dropDownMenuColumn = {
+    const dropDownMenuColumn: ColumnDef = {
         id: "actions",
         accessorKey: "actions",
         header: "Actions",
         enableHiding: false,
         cell: ({ row }: { row: { original: ResourceInstance } }) => {
-            const resource = row.original;
+            const resourceForMenu = row.original;
 
             return (
                 <DropdownMenu>
@@ -34,17 +43,17 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                            onClick={() => deleteResource(resource)}
+                            onClick={() => deleteResource(resourceForMenu)}
                         >
                             <span className="text-red-600">Delete</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            onClick={() => navigate(resource['id'])}
+                            onClick={() => navigate("/" + resourceForMenu['path'])}
                         >
                             <span>Info</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            onClick={() => navigate(`${resource['id']}/_update`)}
+                            onClick={() => navigate(`${resourceForMenu['id']}/_update`)}
                         >
                             <span>Update</span>
                         </DropdownMenuItem>
@@ -57,7 +66,7 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
     function createColumns(r: ResourceSchema | undefined) {
         if(r) {
             const properties = r.properties();
-            const columns = properties
+            const columns: ColumnDef[] = properties
                 .sort((a, b) => {
                     // First sort by priority (path and id first)
                     const priorityOrder = { path: 0, id: 1 };
@@ -72,7 +81,14 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
                     return a.name.localeCompare(b.name);
                 })
                 .map((prop) => {
-                    return {accessorKey: prop.name, header: prop.name}
+                    return {
+                        accessorKey: prop.name,
+                        header: prop.name,
+                        accessorFn: (row: ResourceInstance) => {
+                            const value = (row.properties as Record<string, string | number | boolean | null>)[prop.name];
+                            return value ?? '';
+                        }
+                    }
                 });
             columns.push(dropDownMenuColumn);
             return columns;
@@ -81,17 +97,20 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
         }
     }
 
-    function deleteResource(r: ResourceInstance) {
-        r.delete().then(() => {
+    async function deleteResource(r: ResourceInstance) {
+        try {
+            await r.delete();
             toast({description: `Deleted ${r.path}`});
             onRefresh();
-        });
+        } catch (error) {
+            toast({description: `Failed to delete resource: ${error instanceof Error ? error.message : String(error)}`});
+        }
     }
 
     return (
         <DataTable 
             columns={createColumns(resource)} 
-            data={resources.map((resource) => resource.properties)} 
+            data={resources} 
         />
     );
 } 

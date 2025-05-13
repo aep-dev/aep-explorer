@@ -32,7 +32,7 @@ export default function InfoPage(props: InfoPageProps) {
     return (
         <Card>
         <CardHeader>
-            <CardTitle>{state.properties?.id}</CardTitle>
+            <CardTitle>{state.properties?.path}</CardTitle>
         </CardHeader>
         <CardContent>
             {properties}

@@ -5,6 +5,7 @@ class ResourceSchema {
   singular_name: string;
   plural_name: string;
   server_url: string;
+  parents: Map<string, ResourceInstance>;
 
   constructor(
     singular_name: string,
@@ -16,21 +17,53 @@ class ResourceSchema {
     this.plural_name = plural_name;
     this.schema = schema;
     this.server_url = server_url;
+    this.parents = new Map();
+  }
+
+  private substituteUrlParameters(url: string): string {
+    const paramRegex = /\{([^}]+)\}/g;
+    let match;
+    let resultUrl = url;
+
+    while ((match = paramRegex.exec(url)) !== null) {
+      const paramName = match[1];
+      const parent = this.parents.get(paramName);
+      
+      if (!parent) {
+        throw new Error(`Missing required parent resource: ${paramName}`);
+      }
+
+      const parentId = parent.properties.id;
+      if (!parentId) {
+        throw new Error(`Parent resource ${paramName} has no id property`);
+      }
+
+      resultUrl = resultUrl.replace(`{${paramName}}`, parentId);
+    }
+
+    return resultUrl;
   }
 
   list(headers: string = ""): Promise<ResourceInstance[]> {
-    const url = `${this.server_url}${this.base_url()}`;
+    const baseUrl = this.base_url();
+    const url = this.substituteUrlParameters(`${this.server_url}${baseUrl}`);
     return List(url, this, headers);
   }
 
   get(resourceId: string, headers: string = ""): Promise<ResourceInstance> {
-    const url = `${this.server_url}${this.base_url()}/${resourceId}`;
+    const baseUrl = this.base_url();
+    const url = this.substituteUrlParameters(`${this.server_url}${baseUrl}/${resourceId}`);
     return Get(url, this, headers);
   }
 
   create(body: object, headers: string = ""): Promise {
-    const url = `${this.server_url}${this.base_url()}?id=${body.id}`;
-    return Create(url, body);
+    const baseUrl = this.base_url();
+    let url = `${this.server_url}${baseUrl}`;
+    if (this.properties().find(prop => prop.name === 'id')) {
+        url += `?id=${body.id}`;
+    }
+    url = this.substituteUrlParameters(url);
+    return Create(url, body, headers);
   }
 
   base_url(): string {
