@@ -1,11 +1,11 @@
-import {List, ResourceInstance, Create, Get} from './fetch';
+import { List, ResourceInstance, Create, Get } from './fetch';
 // Responsible for handling the schema for a given resource.
 class ResourceSchema {
   schema: any;
   singular_name: string;
   plural_name: string;
   server_url: string;
-  parents: Map<string, ResourceInstance>;
+  parents: Map<string, string>;
 
   constructor(
     singular_name: string,
@@ -20,22 +20,17 @@ class ResourceSchema {
     this.parents = new Map();
   }
 
-  private substituteUrlParameters(url: string): string {
+  public substituteUrlParameters(url: string): string {
     const paramRegex = /\{([^}]+)\}/g;
     let match;
     let resultUrl = url;
 
     while ((match = paramRegex.exec(url)) !== null) {
       const paramName = match[1];
-      const parent = this.parents.get(paramName);
-      
-      if (!parent) {
-        throw new Error(`Missing required parent resource: ${paramName}`);
-      }
+      const parentId = this.parents.get(paramName);
 
-      const parentId = parent.properties.id;
       if (!parentId) {
-        throw new Error(`Parent resource ${paramName} has no id property`);
+        throw new Error(`Missing required parent resource: ${paramName}`);
       }
 
       resultUrl = resultUrl.replace(`{${paramName}}`, parentId);
@@ -60,7 +55,7 @@ class ResourceSchema {
     const baseUrl = this.base_url();
     let url = `${this.server_url}${baseUrl}`;
     if (this.properties().find(prop => prop.name === 'id')) {
-        url += `?id=${body.id}`;
+      url += `?id=${body.id}`;
     }
     url = this.substituteUrlParameters(url);
     return Create(url, body, headers);
@@ -69,7 +64,7 @@ class ResourceSchema {
   base_url(): string {
     const pattern = this.schema["x-aep-resource"]["patterns"][0];
     const subset = pattern.substring(0, pattern.lastIndexOf("/"));
-    if(subset[0] != "/") {
+    if (subset[0] != "/") {
       return "/" + subset;
     }
     return subset;
@@ -131,6 +126,34 @@ class OpenAPI {
       }
     }
     throw new Error(`Resource not found: ${plural}`);
+  }
+
+  childResources(r: ResourceSchema, id: string): ResourceSchema[] {
+    const children: ResourceSchema[] = [];
+    const allResources = this.resources();
+
+    for (const resource of allResources) {
+      const parents = resource.schema["x-aep-resource"]["parents"] || [];
+      // Get all valid parent names (current resource + its parents)
+      const validParents = new Set([r.singular_name, ...r.parents.keys()]);
+
+      // Check if all parents in the resource's parents array are valid
+      const allParentsValid =
+        parents.length === validParents.size &&
+        parents.every(parent => validParents.has(parent));
+
+      if (allParentsValid) {
+        // Copy parent relationships from the parent resource
+        for (const [key, value] of r.parents.entries()) {
+          resource.parents.set(key, value);
+        }
+        // Add the parent resource's ID
+        resource.parents.set(r.singular_name, id);
+        children.push(resource);
+      }
+    }
+
+    return children;
   }
 }
 

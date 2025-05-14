@@ -1,9 +1,9 @@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
-import { useMemo, } from "react";
+import { useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAppSelector } from "@/hooks/store";
 import { selectHeaders } from "@/state/store";
@@ -15,6 +15,7 @@ type CreateFormProps = {
 
 export default function CreateForm(props: CreateFormProps) {
     const form = useForm();
+    const params = useParams();
     const navigate = useNavigate();
 
     const headers = useAppSelector(selectHeaders);
@@ -51,6 +52,17 @@ export default function CreateForm(props: CreateFormProps) {
                 )
             });
     }, [props, form.control]);
+
+    useEffect(() => {
+        // Set parent parameters from URL params, excluding resourceId
+        const parentParams = new Map<string, string>();
+        for (const [key, value] of Object.entries(params)) {
+            if (key !== 'resourceId' && value) {
+                parentParams.set(key, value);
+            }
+        }
+        props.resource.parents = parentParams;
+    }, [params, props.resource])
 
     return (
         <Form {...form}>

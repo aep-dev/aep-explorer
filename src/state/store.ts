@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { OpenAPI } from './openapi'
+import { OpenAPI, ResourceSchema } from './openapi'
 
 // Schema reducers + selectors.
 interface SchemaState {
@@ -30,6 +30,14 @@ const schemaReducer = schemaSlice.reducer;
 export const selectResources = (state: RootState) => {
   if (state.schema.value != null) {
     return state.schema.value.resources();
+  } else {
+    return [];
+  }
+}
+
+export const selectChildResources = (state: RootState, resource: ResourceSchema, id: string) => {
+  if (state.schema.value != null) {
+    return state.schema.value.childResources(resource, id);
   } else {
     return [];
   }

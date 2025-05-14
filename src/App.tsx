@@ -11,6 +11,10 @@ import { selectResources, store } from './state/store';
 import { Provider } from 'react-redux'
 import { useAppSelector } from "./hooks/store";
 
+function transformUrlForRouter(url: string): string {
+  return url.replace(/\{([^}]+)\}/g, ':$1');
+}
+
 function createRoutes(resources: ResourceSchema[]): RouteObject[] {
   const routes = [{
     path: "/",
@@ -21,21 +25,22 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
         element: <SpecSpecifierPage />,
       },
     ].concat(resources.map((resource) => {
+      const baseUrl = transformUrlForRouter(resource.base_url());
       return [
         {
-          path: resource.base_url(),
+          path: baseUrl,
           element: <ResourceListPage resource={resource} />
         },
         {
-          path: `${resource.base_url()}/_create`,
+          path: `${baseUrl}/_create`,
           element: <CreateForm resource={resource} />
         },
         {
-          path: `${resource.base_url()}/:resourceId`,
+          path: `${baseUrl}/:resourceId`,
           element: <InfoPage resource={resource} />
         },
         {
-          path: `${resource.base_url()}/:resourceId/_update`,
+          path: `${baseUrl}/:resourceId/_update`,
           element: <UpdateForm schema={resource} />
         }
       ]
