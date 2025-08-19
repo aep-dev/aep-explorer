@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { ResourceTypeList } from './resource_type_list';
+import { ResourceTypeList } from '../../components/resource_types/resource_type_list';
 import { describe, expect, it } from 'vitest';
 import fs from 'fs';
 import { parseOpenAPI } from '../../state/openapi'

@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/login-form";
+import { OASSelector } from "@/components/oas-selector";
 import { useAppSelector } from "@/hooks/store";
 import { schemaState } from "@/state/store";
 
@@ -7,7 +7,7 @@ export default function SpecSpecifierPage() {
   if(state == 'unset') {
     return (
       <div className="flex h-screen w-full items-center justify-center px-4">
-        <LoginForm />
+        <OASSelector />
       </div>
     )
   } else {

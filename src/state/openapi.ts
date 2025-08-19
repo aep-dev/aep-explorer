@@ -78,7 +78,7 @@ class ResourceSchema {
     return properties;
   }
 
-  parents(): string[] {
+  parentResources(): string[] {
     const resource = this.schema["x-aep-resource"]
     if ('parents' in resource) {
       return resource.parents;
@@ -128,7 +128,7 @@ class OpenAPI {
   }
 
   parentResources(): ResourceSchema[] {
-    return this.resources().filter((resource) => resource.parents().length == 0);
+    return this.resources().filter((resource) => resource.parentResources().length == 0);
   }
 
   resourceForName(plural: string): ResourceSchema {
