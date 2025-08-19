@@ -9,12 +9,12 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
-import { selectHeaders, selectParentResources, setHeaders } from "@/state/store";
+import { selectHeaders, selectRootResources, setHeaders } from "@/state/store";
 import { Label } from "./ui/label";
 import { ResourceTypeList } from "@/app/sidebar/resource_type_list";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const resources = useAppSelector(selectParentResources);
+  const resources = useAppSelector(selectRootResources);
 
   return (
     <Sidebar {...props}>

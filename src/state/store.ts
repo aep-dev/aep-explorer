@@ -43,7 +43,7 @@ export const selectChildResources = (state: RootState, resource: ResourceSchema,
   }
 }
 
-export const selectParentResources = (state: RootState) => {
+export const selectRootResources = (state: RootState) => {
   if (state.schema.value != null) {
     return state.schema.value.parentResources();
   } else {
