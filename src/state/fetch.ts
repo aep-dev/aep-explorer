@@ -1,6 +1,81 @@
 import { toast } from "@/hooks/use-toast";
 import { ResourceSchema } from "./openapi";
 
+// Helper function to check for API errors in response body
+function checkForApiErrors(responseData: any): void {
+  // Check if response contains 'errors' field
+  if (responseData && responseData.errors) {
+    const errorMessage = Array.isArray(responseData.errors) 
+      ? responseData.errors.join(', ')
+      : String(responseData.errors);
+    toast({description: `API Error: ${errorMessage}`});
+    throw new Error(`API Error: ${errorMessage}`);
+  }
+  
+  // Check if response contains only 'code' and 'message' fields (error format)
+  if (responseData && 
+      responseData.code && 
+      responseData.message && 
+      Object.keys(responseData).length === 2) {
+    const errorMessage = `${responseData.code}: ${responseData.message}`;
+    toast({description: errorMessage});
+    throw new Error(errorMessage);
+  }
+}
+
+// Consolidated error handling function
+async function handleResponse(response: Response, operation: string): Promise<any> {
+  // Always try to parse the response body first, even if response is not ok
+  const text = await response.text();
+  let responseData = null;
+  
+  if (text) {
+    try {
+      responseData = JSON.parse(text);
+    } catch (e) {
+      // If we can't parse JSON, fall back to generic error handling
+    }
+  }
+  
+  if (!response.ok) {
+    // Check if response has error or message field
+    if (responseData) {
+      if (responseData.error) {
+        const errorMessage = `${operation} failed: ${responseData.error}`;
+        toast({description: errorMessage});
+        throw new Error(errorMessage);
+      }
+      if (responseData.message) {
+        const errorMessage = `${operation} failed: ${responseData.message}`;
+        toast({description: errorMessage});
+        throw new Error(errorMessage);
+      }
+    }
+    
+    // Fallback to generic status error
+    toast({description: `${operation} failed with status ${response.status}`});
+    throw new Error(`${operation} failed with status ${response.status}`);
+  }
+  
+  // For successful responses, check for API errors in the usual way
+  if (responseData) {
+    checkForApiErrors(responseData);
+    return responseData;
+  }
+  
+  return null;
+}
+
+// Helper to catch and handle errors consistently
+function handleError(error: unknown, operation: string): never {
+  if (error instanceof Error && error.message.includes('API Error')) {
+    throw error; // Re-throw API errors (already handled)
+  }
+  const message = `Failed to ${operation.toLowerCase()}: ${error instanceof Error ? error.message : String(error)}`;
+  toast({description: message});
+  throw new Error(message);
+}
+
 class ResourceInstance {
   id: string
   path: string
@@ -42,71 +117,70 @@ function getHeaders(headers: string): object {
 }
 
 async function List(url: string, r: ResourceSchema, headersString: string = ""): Promise<ResourceInstance[]> {
-    let response = await fetch(url, {headers: getHeaders(headersString)});
-    const results: ResourceInstance[] = [];
-    const list_response = await response.json();
-    for(const result of list_response.results) {
-        results.push(new ResourceInstance(result['id'], result['path'], result, r));
+    try {
+        const response = await fetch(url, {headers: getHeaders(headersString) as HeadersInit});
+        const list_response = await handleResponse(response, 'List');
+        
+        const results: ResourceInstance[] = [];
+        for(const result of list_response.results) {
+            results.push(new ResourceInstance(result['id'], result['path'], result, r));
+        }
+        return results;
+    } catch (error) {
+        handleError(error, 'list resources');
     }
-    return results;
 }
 
-async function Delete(url: string, headers: string = "") {
+async function Delete(url: string, headers: string = ""): Promise<void> {
   try {
     const response = await fetch(url, {
       method: 'DELETE',
-      headers: getHeaders(headers)
+      headers: getHeaders(headers) as HeadersInit
     });
-    if (!response.ok) {
-        toast({description: `Delete failed with status ${response.status}`})
-    }
-    return;
+    
+    await handleResponse(response, 'Delete');
   } catch (error) {
-    toast({description: `Failed to delete resource: ${error instanceof Error ? error.message : String(error)}`});
+    handleError(error, 'delete resource');
   }
 }
 
 async function Get(url: string, r: ResourceSchema, headersString: string = ""): Promise<ResourceInstance> {
   try {
-    const response = await fetch(url, { headers: getHeaders(headersString)});
-    if (!response.ok) {
-        toast({description: `Get failed with status ${response.status}`})
-    }
-    const result = await response.json();
+    const response = await fetch(url, { headers: getHeaders(headersString) as HeadersInit});
+    const result = await handleResponse(response, 'Get');
+    
     return new ResourceInstance(result['id'], result['path'], result, r);
   } catch (error) {
-    toast({description: `Failed to get resource: ${error instanceof Error ? error.message : String(error)}`});
+    handleError(error, 'get resource');
   }
 }
 
-async function Create(url: string, contents: object, headersString: string = "") {
-try {
+async function Create(url: string, contents: object, headersString: string = ""): Promise<void> {
+  try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: getHeaders(headersString),
+      headers: getHeaders(headersString) as HeadersInit,
       body: JSON.stringify(contents),
     });
-    if (!response.ok) {
-      toast({description: `Create failed with status ${response.status}`});
-    }
+    
+    await handleResponse(response, 'Create');
   } catch (error) {
-    toast({description: `Failed to create resource: ${error instanceof Error ? error.message : String(error)}`});
+    handleError(error, 'create resource');
   }
 }
 
-async function Patch(url: string, contents: object, headersString: string = "") {
-try {
+async function Patch(url: string, contents: object, headersString: string = ""): Promise<void> {
+  try {
     const response = await fetch(url, {
       method: 'PATCH',
-      headers: getHeaders(headersString),
+      headers: getHeaders(headersString) as HeadersInit,
       body: JSON.stringify(contents),
     });
-    if (!response.ok) {
-      toast({description: `Patch failed with status ${response.status}`});
-    }
+    
+    await handleResponse(response, 'Patch');
   } catch (error) {
-    toast({description: `Failed to patch resource: ${error instanceof Error ? error.message : String(error)}`});
+    handleError(error, 'patch resource');
   }
 }
 
-export {ResourceInstance, List, Create, Get}
+export {ResourceInstance, List, Create, Get, Delete, Patch}
