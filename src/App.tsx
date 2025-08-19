@@ -3,7 +3,7 @@ import SpecSpecifierPage from "./app/spec_specifier/page";
 import { createBrowserRouter, RouteObject, RouterProvider } from "react-router-dom";
 import Layout from "./app/explorer/page";
 import ResourceListPage from "./app/explorer/resource_list";
-import CreateForm from "./app/explorer/form";
+import CreateForm from "./components/form/form";
 import InfoPage from "./app/explorer/info";
 import UpdateForm from "./app/explorer/update_form";
 
