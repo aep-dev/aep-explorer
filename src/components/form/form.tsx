@@ -15,11 +15,13 @@ type CreateFormProps = {
     resource: ResourceSchema
 }
 
-function createValidationSchema(properties: PropertySchema[]): z.ZodSchema {
+function createValidationSchema(properties: PropertySchema[], requiredFields: string[]): z.ZodSchema {
     const schemaObject: Record<string, z.ZodTypeAny> = {};
     
     for (const property of properties) {
+        if (!property) continue; // Skip null properties
         let fieldSchema: z.ZodTypeAny;
+        const isRequired = requiredFields.includes(property.name);
         
         switch (property.type) {
             case 'integer':
@@ -39,10 +41,19 @@ function createValidationSchema(properties: PropertySchema[]): z.ZodSchema {
                 break;
             case 'string':
             default:
-                fieldSchema = z.string().min(1, {
-                    message: `${property.name} is required`
-                });
+                if (isRequired) {
+                    fieldSchema = z.string().min(1, {
+                        message: `${property.name} is required`
+                    });
+                } else {
+                    fieldSchema = z.string().optional();
+                }
                 break;
+        }
+        
+        // Make numeric and boolean fields optional if not required
+        if (!isRequired && (property.type === 'integer' || property.type === 'number' || property.type === 'boolean')) {
+            fieldSchema = fieldSchema.optional();
         }
         
         schemaObject[property.name] = fieldSchema;
@@ -58,7 +69,8 @@ export default function CreateForm(props: CreateFormProps) {
     
     const validationSchema = useMemo(() => {
         const properties = props.resource.properties();
-        return createValidationSchema(properties);
+        const requiredFields = props.resource.required();
+        return createValidationSchema(properties, requiredFields);
     }, [props.resource]);
     
     const form = useForm({
@@ -71,7 +83,11 @@ export default function CreateForm(props: CreateFormProps) {
         props.resource.create(value, headers).then(() => {
             toast({description: `Created new resource`});
             navigate(-1);
-        })
+        }).catch((error: unknown) => {
+            // Error handling is already done in the fetch layer (handleResponse)
+            // This catch prevents unhandled promise rejections
+            console.error('Form submission failed:', error);
+        });
 
     });
 

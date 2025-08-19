@@ -78,6 +78,10 @@ class ResourceSchema {
     return properties;
   }
 
+  required(): string[] {
+    return this.schema.required || [];
+  }
+
   parentResources(): string[] {
     const resource = this.schema["x-aep-resource"]
     if ('parents' in resource) {
