@@ -14,7 +14,8 @@ import { OpenAPI } from "@/state/openapi";
 import { setSchema } from "@/state/store";
 import { useState } from "react";
 
-export function LoginForm() {
+// A form to select an OpenAPI spec URL and set it in the application state.
+export function OASSelector() {
   const [state, setState] = useState("");
   const dispatch = useAppDispatch();
 

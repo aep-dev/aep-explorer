@@ -6,6 +6,7 @@ type ResourceTypeListProps = {
     resources: ResourceSchema[];
 };
 
+// ResourceTypeList component renders a list of resource types as links in the sidebar.
 export function ResourceTypeList(props: ResourceTypeListProps) {
     return (
         <SidebarGroup>
