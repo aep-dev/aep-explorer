@@ -73,7 +73,19 @@ class ResourceSchema {
   properties(): PropertySchema[] {
     const properties: PropertySchema[] = [];
     for (const [name, schema] of Object.entries(this.schema.properties)) {
-      properties.push(new PropertySchema(name, schema.type));
+      let items: PropertySchema | undefined;
+      
+      if (schema.type === 'array' && schema.items) {
+        // For array items, create a PropertySchema for the items type
+        if (schema.items.type) {
+          items = new PropertySchema(`${name}_item`, schema.items.type);
+        } else if (schema.items.$ref) {
+          // Handle object references - for now, treat as 'object'
+          items = new PropertySchema(`${name}_item`, 'object');
+        }
+      }
+      
+      properties.push(new PropertySchema(name, schema.type, items));
     }
     return properties;
   }
@@ -95,10 +107,12 @@ class ResourceSchema {
 class PropertySchema {
   name: string
   type: string
+  items?: PropertySchema
 
-  constructor(name: string, type: string) {
+  constructor(name: string, type: string, items?: PropertySchema) {
     this.name = name;
     this.type = type;
+    this.items = items;
   }
 }
 
