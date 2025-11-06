@@ -1,11 +1,12 @@
 import { DataTable } from "@/components/ui/data-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, CloudAlert } from "lucide-react";
 import { ResourceSchema } from "@/state/openapi";
 import { ResourceInstance } from "@/state/fetch";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 type ResourceListTableProps = {
     resource: ResourceSchema;
@@ -107,10 +108,31 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
         }
     }
 
+    if (resources.length === 0) {
+        return (
+            <Empty>
+                <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                        <CloudAlert />
+                    </EmptyMedia>
+                    <EmptyTitle>No {resource.plural_name}</EmptyTitle>
+                    <EmptyDescription>
+                        Get started by creating your first {resource.plural_name.toLowerCase()}.
+                    </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                    <Button onClick={() => navigate('_create')}>
+                        Create {resource.plural_name}
+                    </Button>
+                </EmptyContent>
+            </Empty>
+        );
+    }
+
     return (
-        <DataTable 
-            columns={createColumns(resource)} 
-            data={resources} 
+        <DataTable
+            columns={createColumns(resource)}
+            data={resources}
         />
     );
 } 
