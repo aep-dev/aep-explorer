@@ -117,12 +117,12 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
                     </EmptyMedia>
                     <EmptyTitle>No {resource.plural_name}</EmptyTitle>
                     <EmptyDescription>
-                        Get started by creating your first {resource.name.toLowerCase()}.
+                        Get started by creating your first {resource.plural_name.toLowerCase()}.
                     </EmptyDescription>
                 </EmptyHeader>
                 <EmptyContent>
                     <Button onClick={() => navigate('_create')}>
-                        Create {resource.name}
+                        Create {resource.plural_name}
                     </Button>
                 </EmptyContent>
             </Empty>
