@@ -73,7 +73,7 @@ class ResourceSchema {
   properties(): PropertySchema[] {
     const properties: PropertySchema[] = [];
     for (const [name, schema] of Object.entries(this.schema.properties)) {
-      properties.push(new PropertySchema(name, schema.type));
+      properties.push(new PropertySchema(name, (schema as any).type, schema));
     }
     return properties;
   }
@@ -95,10 +95,30 @@ class ResourceSchema {
 class PropertySchema {
   name: string
   type: string
+  schema: any
 
-  constructor(name: string, type: string) {
+  constructor(name: string, type: string, schema?: any) {
     this.name = name;
     this.type = type;
+    this.schema = schema;
+  }
+
+  properties(): PropertySchema[] {
+    if (this.type === 'object' && this.schema?.properties) {
+      const properties: PropertySchema[] = [];
+      for (const [name, schema] of Object.entries(this.schema.properties)) {
+        properties.push(new PropertySchema(name, (schema as any).type, schema));
+      }
+      return properties;
+    }
+    return [];
+  }
+
+  required(): string[] {
+    if (this.type === 'object' && this.schema?.required) {
+      return this.schema.required;
+    }
+    return [];
   }
 }
 
