@@ -1,27 +1,25 @@
-# aep-explorer
+# AEP Explorer
 
-aep-explorer is a web interface used to interact with [aep-compliant](https://aep.dev) APIs.
+AEP Explorer is a web interface for exploring and interacting with [AEP-compliant](https://aep.dev) APIs.
 
-aep-explorer:
+AEP Explorer:
 
-- Provides a way to view the resources exposed by an API.
+- Provides a way to view the resources exposed by an API described by an OpenAPI document.
 - Enables exploration of the objects stored within a collection, including filtering.
 
 ## Live Demo
 
-aep-explorer is available at `https://ui.aep.dev/`.
+AEP Explorer is available at [ui.aep.dev](https://ui.aep.dev).
 
 ## User Guide
 
-The tool can be run online or deployed locally depending on
-[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS) settings.
-
-### Using ui.aep.dev
-
-For many users, visiting `https://ui.aep.dev` and entering the URL to an
-aep-compliant API of your choice is sufficient.
+The [online demo](https://ui.aep.dev) is the easiest way to try the project. 
+Simply use the form to enter the URL of an AEP-compliant.
 
 ### Running Locally
+
+For advanced users, the project can be deployed locally depending on
+[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS) settings.
 
 ```bash
 npm install
