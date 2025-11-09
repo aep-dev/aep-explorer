@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { ResourceInstance } from "@/state/fetch";
 import { ResourceSchema } from "@/state/openapi";
 import { useAppSelector } from "@/hooks/store";
@@ -48,7 +49,7 @@ export default function InfoPage(props: InfoPageProps) {
                 }
                 return results;
             }
-            return <p>Loading...</p>
+            return <Spinner />
     }, [state]);
 
     return (

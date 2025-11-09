@@ -2,6 +2,7 @@ import { Form as FormProvider, FormControl, FormField } from "@/components/ui/fo
 import { Field, FieldGroup, FieldLabel, FieldError, FieldSet, FieldLegend } from "@/components/ui/field";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import React, { useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -110,7 +111,7 @@ export function Form(props: FormProps) {
 
     const renderField = (p: PropertySchema, parentPath: string = ''): React.ReactNode => {
         if (!p) {
-            return (<div key="loading">Loading...</div>);
+            return (<Spinner key="loading" />);
         }
 
         const fieldPath = parentPath ? `${parentPath}.${p.name}` : p.name;
