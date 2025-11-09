@@ -1,5 +1,5 @@
 import { List, ResourceInstance, Create, Get } from './fetch';
-import { Resource, Schema, APIClient } from '@aep_dev/aep-lib-ts';
+import { Resource, Schema, APIClient, CustomMethod } from '@aep_dev/aep-lib-ts';
 
 // Adapter class that wraps aep-lib-ts Resource with additional UI-specific functionality
 class ResourceSchema {
@@ -103,6 +103,10 @@ class ResourceSchema {
 
   parentResources(): string[] {
     return this.resource.parents.map(p => p.singular);
+  }
+
+  customMethods(): CustomMethod[] {
+    return this.resource.customMethods || [];
   }
 }
 
