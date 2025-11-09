@@ -54,7 +54,7 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
                             <span>Info</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            onClick={() => navigate(`${resourceForMenu['id']}/_update`)}
+                            onClick={() => navigate("/" + `${resourceForMenu['path']}/_update`)}
                         >
                             <span>Update</span>
                         </DropdownMenuItem>
