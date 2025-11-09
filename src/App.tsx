@@ -5,7 +5,7 @@ import Layout from "./app/explorer/page";
 import ResourceListPage from "./app/explorer/resource_list";
 import CreateForm from "./components/form/form";
 import InfoPage from "./app/explorer/info";
-import UpdateForm from "./app/explorer/update_form";
+import UpdatePage from "./app/explorer/update_form";
 
 import { selectResources, store } from './state/store';
 import { Provider } from 'react-redux'
@@ -41,7 +41,7 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
         },
         {
           path: `${baseUrl}/:resourceId/_update`,
-          element: <UpdateForm schema={resource} />
+          element: <UpdatePage schema={resource} />
         }
       ]
     }).flat(1))

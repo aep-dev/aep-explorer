@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { Form } from './form';
 import { ResourceSchema, PropertySchema } from '@/state/openapi';
+import { ResourceInstance } from '@/state/fetch';
 import fs from 'fs';
 import { parseOpenAPI } from '@/state/openapi';
 
@@ -28,7 +29,15 @@ describe('Form', () => {
     vi.clearAllMocks();
   });
 
-  const renderForm = (resource: ResourceSchema, headers = '', parentParams = new Map<string, string>()) => {
+  const renderForm = (
+    resource: ResourceSchema,
+    headers = '',
+    parentParams = new Map<string, string>(),
+    resourceInstance?: ResourceInstance,
+    onSubmitOperation?: (value: Record<string, unknown>) => Promise<void>
+  ) => {
+    const defaultOnSubmitOperation = onSubmitOperation || ((value: Record<string, unknown>) => resource.create(value, headers));
+
     return render(
       <BrowserRouter>
         <Form
@@ -37,6 +46,8 @@ describe('Form', () => {
           parentParams={parentParams}
           onSuccess={mockOnSuccess}
           onError={mockOnError}
+          resourceInstance={resourceInstance}
+          onSubmitOperation={defaultOnSubmitOperation}
         />
       </BrowserRouter>
     );
@@ -582,6 +593,166 @@ describe('Form', () => {
       const fieldSet = container.querySelector('[data-slot="field-set"]');
       const nestedFieldGroup = fieldSet?.querySelector('[data-slot="field-group"]');
       expect(nestedFieldGroup).toBeInTheDocument();
+    });
+  });
+
+  describe('ResourceInstance integration', () => {
+    const createMockResourceInstance = (properties: Record<string, unknown>, schema: ResourceSchema): ResourceInstance => {
+      return {
+        id: '123',
+        path: '/test/123',
+        properties: properties,
+        schema: schema,
+        delete: vi.fn().mockResolvedValue({}),
+        update: vi.fn().mockResolvedValue({})
+      } as unknown as ResourceInstance;
+    };
+
+    it('populates form with default values from resourceInstance', () => {
+      const properties = [
+        new PropertySchema('name', 'string'),
+        new PropertySchema('age', 'integer'),
+        new PropertySchema('active', 'boolean'),
+      ];
+
+      const resource = createMockResourceSchema(properties);
+      const resourceInstance = createMockResourceInstance({
+        name: 'John Doe',
+        age: 30,
+        active: true
+      }, resource);
+
+      renderForm(resource, '', new Map(), resourceInstance);
+
+      expect(screen.getByLabelText('name')).toHaveValue('John Doe');
+      expect(screen.getByLabelText('age')).toHaveValue(30);
+      expect(screen.getByLabelText('active')).toBeChecked();
+    });
+
+    it('calls update operation when resourceInstance is provided', async () => {
+      const properties = [new PropertySchema('name', 'string')];
+      const resource = createMockResourceSchema(properties);
+      const resourceInstance = createMockResourceInstance({ name: 'Old Name' }, resource);
+      const mockUpdateOperation = vi.fn().mockResolvedValue({});
+
+      renderForm(resource, '', new Map(), resourceInstance, mockUpdateOperation);
+
+      // Update the name field
+      const nameInput = screen.getByLabelText('name');
+      fireEvent.change(nameInput, { target: { value: 'New Name' } });
+
+      // Submit the form
+      fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+      await waitFor(() => {
+        expect(mockUpdateOperation).toHaveBeenCalledWith({ name: 'New Name' });
+      });
+
+      expect(mockOnSuccess).toHaveBeenCalled();
+    });
+
+    it('calls create operation when resourceInstance is not provided', async () => {
+      const properties = [new PropertySchema('name', 'string')];
+      const resource = createMockResourceSchema(properties);
+      const mockCreateOperation = vi.fn().mockResolvedValue({});
+
+      renderForm(resource, '', new Map(), undefined, mockCreateOperation);
+
+      // Fill in the name field
+      fireEvent.change(screen.getByLabelText('name'), { target: { value: 'Test Name' } });
+
+      // Submit the form
+      fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+      await waitFor(() => {
+        expect(mockCreateOperation).toHaveBeenCalledWith({ name: 'Test Name' });
+      });
+
+      expect(mockOnSuccess).toHaveBeenCalled();
+    });
+
+    it('handles empty/undefined values in resourceInstance properties', () => {
+      const properties = [
+        new PropertySchema('name', 'string'),
+        new PropertySchema('description', 'string'),
+      ];
+
+      const resource = createMockResourceSchema(properties);
+      const resourceInstance = createMockResourceInstance({
+        name: 'Test Name',
+        // description is intentionally omitted
+      }, resource);
+
+      renderForm(resource, '', new Map(), resourceInstance);
+
+      expect(screen.getByLabelText('name')).toHaveValue('Test Name');
+      expect(screen.getByLabelText('description')).toHaveValue('');
+    });
+
+    it('allows modification of pre-filled values from resourceInstance', async () => {
+      const properties = [
+        new PropertySchema('name', 'string'),
+        new PropertySchema('age', 'integer'),
+      ];
+
+      const resource = createMockResourceSchema(properties);
+      const resourceInstance = createMockResourceInstance({
+        name: 'Original Name',
+        age: 25
+      }, resource);
+      const mockUpdateOperation = vi.fn().mockResolvedValue({});
+
+      renderForm(resource, '', new Map(), resourceInstance, mockUpdateOperation);
+
+      // Verify initial values
+      expect(screen.getByLabelText('name')).toHaveValue('Original Name');
+      expect(screen.getByLabelText('age')).toHaveValue(25);
+
+      // Modify both fields
+      fireEvent.change(screen.getByLabelText('name'), { target: { value: 'Modified Name' } });
+      fireEvent.change(screen.getByLabelText('age'), { target: { value: '30' } });
+
+      // Submit the form
+      fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+      await waitFor(() => {
+        expect(mockUpdateOperation).toHaveBeenCalledWith({
+          name: 'Modified Name',
+          age: 30
+        });
+      });
+    });
+
+    it('handles nested object values in resourceInstance', () => {
+      const addressSchema = {
+        type: 'object',
+        properties: {
+          street: { type: 'string' },
+          city: { type: 'string' }
+        },
+        required: []
+      };
+
+      const addressProperty = new PropertySchema('address', 'object', addressSchema);
+      const properties = [
+        new PropertySchema('name', 'string'),
+        addressProperty
+      ];
+
+      const resource = createMockResourceSchema(properties);
+      const resourceInstance = createMockResourceInstance({
+        name: 'John Doe',
+        address: {
+          street: '123 Main St',
+          city: 'Springfield'
+        }
+      }, resource);
+
+      renderForm(resource, '', new Map(), resourceInstance);
+
+      expect(screen.getByLabelText('name')).toHaveValue('John Doe');
+      expect(screen.getByLabelText('street')).toHaveValue('123 Main St');
+      expect(screen.getByLabelText('city')).toHaveValue('Springfield');
     });
   });
 });

@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAppSelector } from "@/hooks/store";
 import { selectHeaders } from "@/state/store";
 import { ResourceSchema, PropertySchema } from "@/state/openapi";
+import { ResourceInstance } from "@/state/fetch";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -19,6 +20,9 @@ type FormProps = {
     headers: string;
     onSuccess: () => void;
     onError: (error: unknown) => void;
+    // Current resource state used to fill in the form's default values for updating (optional)
+    resourceInstance?: ResourceInstance;
+    onSubmitOperation: (value: Record<string, unknown>) => Promise<void>;
 }
 
 function createValidationSchema(properties: PropertySchema[], requiredFields: string[]): z.ZodSchema {
@@ -83,14 +87,19 @@ export function Form(props: FormProps) {
         return createValidationSchema(properties, requiredFields);
     }, [props.resource]);
 
+    const defaultValues = useMemo(() => {
+        return props.resourceInstance?.properties || {};
+    }, [props.resourceInstance]);
+
     const form = useForm({
-        resolver: zodResolver(validationSchema)
+        resolver: zodResolver(validationSchema),
+        defaultValues: defaultValues
     });
 
     const onSubmit = ((value: Record<string, unknown>) => {
         // Value is the properly formed JSON body.
         // Just need to submit it and call the appropriate callback.
-        props.resource.create(value, props.headers).then(() => {
+        props.onSubmitOperation(value).then(() => {
             props.onSuccess();
         }).catch((error: unknown) => {
             props.onError(error);
@@ -214,6 +223,7 @@ export default function CreateForm(props: { resource: ResourceSchema }) {
             headers={headers}
             onSuccess={handleSuccess}
             onError={handleError}
+            onSubmitOperation={(value) => props.resource.create(value, headers)}
         />
     );
 }
