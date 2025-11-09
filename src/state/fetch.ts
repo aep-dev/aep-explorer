@@ -120,10 +120,12 @@ async function List(url: string, r: ResourceSchema, headersString: string = ""):
     try {
         const response = await fetch(url, {headers: getHeaders(headersString) as HeadersInit});
         const list_response = await handleResponse(response, 'List');
-        
+
         const results: ResourceInstance[] = [];
-        for(const result of list_response.results) {
-            results.push(new ResourceInstance(result['id'], result['path'], result, r));
+        if (list_response?.results && Array.isArray(list_response.results)) {
+            for(const result of list_response.results) {
+                results.push(new ResourceInstance(result['id'], result['path'], result, r));
+            }
         }
         return results;
     } catch (error) {
