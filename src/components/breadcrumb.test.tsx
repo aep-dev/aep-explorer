@@ -79,9 +79,9 @@ describe('createRouteObjects', () => {
     expect(routeObjects['/books/{resourceId}/_update']).toBe('book Update');
   });
 
-  it('works with real OpenAPI schema', () => {
+  it('works with real OpenAPI schema', async () => {
     const fileContents = fs.readFileSync('src/example_oas.json', 'utf8');
-    const openAPI = parseOpenAPI(fileContents);
+    const openAPI = await parseOpenAPI(fileContents);
     const resources = openAPI.resources();
 
     const routeObjects = createRouteObjects(resources);
@@ -323,9 +323,9 @@ describe('AppBreadcrumb', () => {
     expect(bookInfoElement.tagName).toBe('SPAN');
   });
 
-  it('should work with real OpenAPI schema and nested resources', () => {
+  it('should work with real OpenAPI schema and nested resources', async () => {
     const fileContents = fs.readFileSync('src/example_oas.json', 'utf8');
-    const openAPI = parseOpenAPI(fileContents);
+    const openAPI = await parseOpenAPI(fileContents);
     const resources = openAPI.resources();
 
     (useAppSelector as any).mockReturnValue(resources);

@@ -7,9 +7,9 @@ import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { BrowserRouter } from 'react-router-dom';
 
 describe('ResourceTypeList', () => {
-    it("should render the correct number of links", () => {
+    it("should render the correct number of links", async () => {
         const fileContents = fs.readFileSync('src/example_oas.json', 'utf8');
-        const openAPI = parseOpenAPI(fileContents);
+        const openAPI = await parseOpenAPI(fileContents);
         render(
         <BrowserRouter>
             <SidebarProvider>

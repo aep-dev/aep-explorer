@@ -13,18 +13,27 @@ import { toast } from "@/hooks/use-toast";
 import { OpenAPI } from "@/state/openapi";
 import { setSchema } from "@/state/store";
 import { useState } from "react";
+import { fetchOpenAPI, APIClient } from "@aep_dev/aep-lib-ts";
+
+interface SpecSpecifier {
+  url: string;
+  prefix?: string;
+}
 
 // A form to select an OpenAPI spec URL and set it in the application state.
 export function OASSelector() {
-  const [state, setState] = useState("");
+  const [state, setState] = useState<SpecSpecifier>({ url: "", prefix: "" });
   const dispatch = useAppDispatch();
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await fetch(state);
-      const data = await response.json();
-      dispatch(setSchema(new OpenAPI(data)));
+      const openApiSpec = await fetchOpenAPI(state.url);
+      const apiClient = await APIClient.fromOpenAPI(
+        openApiSpec,
+        state.prefix || undefined
+      );
+      dispatch(setSchema(new OpenAPI(apiClient)));
     } catch (error) {
       toast({description: `Failed to fetch OpenAPI spec: ${error}`})
     }
@@ -46,8 +55,17 @@ export function OASSelector() {
               id="spec"
               type="url"
               placeholder="example.com/openapi.json"
-              onChange={(event) => setState(event.target.value)}
+              onChange={(event) => setState({ ...state, url: event.target.value })}
               required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="prefix">Path Prefix (optional)</Label>
+            <Input
+              id="prefix"
+              type="text"
+              placeholder="/api/v1"
+              onChange={(event) => setState({ ...state, prefix: event.target.value })}
             />
           </div>
           <Button onClick={onSubmit} type="submit" className="w-full">
