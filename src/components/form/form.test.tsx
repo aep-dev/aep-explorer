@@ -1,69 +1,44 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import CreateForm from './form';
+import { Form } from './form';
 import { ResourceSchema, PropertySchema } from '@/state/openapi';
 import fs from 'fs';
 import { parseOpenAPI } from '@/state/openapi';
-import { toast } from '@/hooks/use-toast';
-
-// Mock hooks
-vi.mock('@/hooks/use-toast', () => ({
-  toast: vi.fn(),
-}));
-
-const mockNavigate = vi.fn();
-let mockParams = {};
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-    useParams: () => mockParams,
-  };
-});
-
-// Create a test store
-const createTestStore = (headers = '') => {
-  return configureStore({
-    reducer: {
-      schema: (state = { value: null, state: 'unset' }) => state,
-      headers: (state = { value: headers }) => state,
-    },
-  });
-};
 
 // Mock ResourceSchema for testing different property types
 const createMockResourceSchema = (properties: PropertySchema[], shouldFail = false, requiredFields: string[] = []): ResourceSchema => {
   const mockSchema = {
     properties: () => properties,
     required: () => requiredFields,
-    create: shouldFail 
+    create: shouldFail
       ? vi.fn().mockRejectedValue(new Error('Creation failed'))
       : vi.fn().mockResolvedValue({}),
     parents: new Map(),
   } as unknown as ResourceSchema;
-  
+
   return mockSchema;
 };
 
-describe('CreateForm', () => {
+describe('Form', () => {
+  const mockOnSuccess = vi.fn();
+  const mockOnError = vi.fn();
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  const renderForm = (resource: ResourceSchema, headers = '') => {
-    const store = createTestStore(headers);
-    
+  const renderForm = (resource: ResourceSchema, headers = '', parentParams = new Map<string, string>()) => {
     return render(
-      <Provider store={store}>
-        <BrowserRouter>
-          <CreateForm resource={resource} />
-        </BrowserRouter>
-      </Provider>
+      <BrowserRouter>
+        <Form
+          resource={resource}
+          headers={headers}
+          parentParams={parentParams}
+          onSuccess={mockOnSuccess}
+          onError={mockOnError}
+        />
+      </BrowserRouter>
     );
   };
 
@@ -212,27 +187,19 @@ describe('CreateForm', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
-  it('sets parent parameters from URL params excluding resourceId', () => {
+  it('sets parent parameters on the resource', () => {
     const properties = [new PropertySchema('name', 'string')];
     const resource = createMockResourceSchema(properties);
-    
-    // Temporarily mock useParams to return specific parameters
-    const originalMockParams = { ...mockParams };
-    mockParams = {
-      parentId: '123',
-      resourceId: '456',
-      categoryId: '789'
-    };
-    
-    renderForm(resource);
-    
-    // Check that parent parameters are set correctly (excluding resourceId)
+
+    const parentParams = new Map<string, string>();
+    parentParams.set('parentId', '123');
+    parentParams.set('categoryId', '789');
+
+    renderForm(resource, '', parentParams);
+
+    // Check that parent parameters are set correctly on the resource
     expect(resource.parents.get('parentId')).toBe('123');
     expect(resource.parents.get('categoryId')).toBe('789');
-    expect(resource.parents.has('resourceId')).toBe(false);
-    
-    // Restore original mockParams
-    mockParams = originalMockParams;
   });
 
   it('handles checkbox checked property correctly', () => {
@@ -254,7 +221,7 @@ describe('CreateForm', () => {
     expect(checkboxInput).not.toBeChecked();
   });
 
-  it('navigates back after successful form submission', async () => {
+  it('calls onSuccess after successful form submission', async () => {
     const properties = [new PropertySchema('name', 'string')];
     const resource = createMockResourceSchema(properties);
     renderForm(resource);
@@ -264,23 +231,7 @@ describe('CreateForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(-1);
-    });
-  });
-
-  it('shows toast notification on successful form submission', async () => {
-    const properties = [new PropertySchema('name', 'string')];
-    const resource = createMockResourceSchema(properties);
-    renderForm(resource);
-
-    // Fill and submit the form
-    fireEvent.change(screen.getByLabelText('name'), { target: { value: 'Test Name' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-
-    await waitFor(() => {
-      expect(toast).toHaveBeenCalledWith({
-        description: 'Created new resource'
-      });
+      expect(mockOnSuccess).toHaveBeenCalled();
     });
   });
 
@@ -297,9 +248,11 @@ describe('CreateForm', () => {
       expect(resource.create).toHaveBeenCalled();
     });
 
-    // Should not navigate or show success toast when creation fails
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(toast).not.toHaveBeenCalled();
+    // Should call onError and not onSuccess when creation fails
+    await waitFor(() => {
+      expect(mockOnError).toHaveBeenCalled();
+    });
+    expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 
   it('allows submission of optional string fields when empty', async () => {

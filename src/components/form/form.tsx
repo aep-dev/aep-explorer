@@ -1,4 +1,4 @@
-import { Form, FormControl, FormField } from "@/components/ui/form";
+import { Form as FormProvider, FormControl, FormField } from "@/components/ui/form";
 import { Field, FieldGroup, FieldLabel, FieldError, FieldSet, FieldLegend } from "@/components/ui/field";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,12 @@ import { ResourceSchema, PropertySchema } from "@/state/openapi";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-type CreateFormProps = {
-    resource: ResourceSchema
+type FormProps = {
+    resource: ResourceSchema;
+    parentParams: Map<string, string>;
+    headers: string;
+    onSuccess: () => void;
+    onError: (error: unknown) => void;
 }
 
 function createValidationSchema(properties: PropertySchema[], requiredFields: string[]): z.ZodSchema {
@@ -70,34 +74,26 @@ function createValidationSchema(properties: PropertySchema[], requiredFields: st
     return z.object(schemaObject);
 }
 
-// CreateForm is responsible for creating a form based on the resource schema.
-export default function CreateForm(props: CreateFormProps) {
-    const params = useParams();
-    const navigate = useNavigate();
-    const headers = useAppSelector(selectHeaders);
-    
+// Form is responsible for rendering a form based on the resource schema.
+export function Form(props: FormProps) {
     const validationSchema = useMemo(() => {
         const properties = props.resource.properties();
         const requiredFields = props.resource.required();
         return createValidationSchema(properties, requiredFields);
     }, [props.resource]);
-    
+
     const form = useForm({
         resolver: zodResolver(validationSchema)
     });
 
     const onSubmit = ((value: Record<string, unknown>) => {
         // Value is the properly formed JSON body.
-        // Just need to submit it and navigate back to the list page.
-        props.resource.create(value, headers).then(() => {
-            toast({description: `Created new resource`});
-            navigate(-1);
+        // Just need to submit it and call the appropriate callback.
+        props.resource.create(value, props.headers).then(() => {
+            props.onSuccess();
         }).catch((error: unknown) => {
-            // Error handling is already done in the fetch layer (handleResponse)
-            // This catch prevents unhandled promise rejections
-            console.error('Form submission failed:', error);
+            props.onError(error);
         });
-
     });
 
     const getInputType = (propertyType: string) => {
@@ -164,27 +160,59 @@ export default function CreateForm(props: CreateFormProps) {
 
     const formBuilder = useMemo(() => {
         return props.resource.properties().map((p) => renderField(p));
-    }, [props, form.control]);
+    }, [props.resource, form.control]);
 
     useEffect(() => {
-        // Set parent parameters from URL params, excluding resourceId
-        const parentParams = new Map<string, string>();
-        for (const [key, value] of Object.entries(params)) {
-            if (key !== 'resourceId' && value) {
-                parentParams.set(key, value);
-            }
-        }
-        props.resource.parents = parentParams;
-    }, [params, props.resource])
+        // Set parent parameters on the resource
+        props.resource.parents = props.parentParams;
+    }, [props.parentParams, props.resource])
 
     return (
-        <Form {...form}>
+        <FormProvider {...form}>
             <form>
                 <FieldGroup>
                     {formBuilder}
                 </FieldGroup>
                 <Button onClick={form.handleSubmit(onSubmit)} type="submit">Submit</Button>
             </form>
-        </Form>
+        </FormProvider>
     )
+}
+
+// CreateForm wrapper component that uses hooks to provide props to Form
+export default function CreateForm(props: { resource: ResourceSchema }) {
+    const params = useParams();
+    const navigate = useNavigate();
+    const headers = useAppSelector(selectHeaders);
+
+    const parentParams = useMemo(() => {
+        const parentMap = new Map<string, string>();
+        for (const [key, value] of Object.entries(params)) {
+            if (key !== 'resourceId' && value) {
+                parentMap.set(key, value);
+            }
+        }
+        return parentMap;
+    }, [params]);
+
+    const handleSuccess = () => {
+        toast({ description: 'Created new resource' });
+        navigate(-1);
+    };
+
+    const handleError = (error: unknown) => {
+        // Error handling is already done in the fetch layer (handleResponse)
+        // This catch prevents unhandled promise rejections
+        console.error('Form submission failed:', error);
+    };
+
+    return (
+        <Form
+            resource={props.resource}
+            parentParams={parentParams}
+            headers={headers}
+            onSuccess={handleSuccess}
+            onError={handleError}
+        />
+    );
 }
