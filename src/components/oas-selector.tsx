@@ -40,24 +40,50 @@ export function OASSelector() {
   };
 
   return (
-    <Card className="mx-auto max-w-sm">
+    <Card className="mx-auto max-w-2xl">
       <CardHeader>
-        <CardTitle className="text-2xl">AEP UI</CardTitle>
-        <CardDescription>
-          Enter a URL to your AEP-compliant OpenAPI Spec to continue.
+        <CardTitle className="text-2xl">AEP Explorer</CardTitle>
+        <CardDescription className="space-y-2">
+          <p>
+            A web interface for exploring and interacting with{" "}
+            <a
+              href="https://aep.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              AEP-compliant
+            </a>{" "}
+            APIs.
+          </p>
+          <p className="pt-2">
+            <strong>What you can do:</strong>
+          </p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li>View all resources exposed by your API</li>
+            <li>Browse and filter objects within collections</li>
+            <li>Create, read, update, and delete resources</li>
+            <li>Explore resource relationships and custom methods</li>
+          </ul>
+          <p className="pt-2">
+            Enter your AEP-compliant OpenAPI Spec URL below to get started.
+          </p>
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="spec">OpenAPI Spec</Label>
+            <Label htmlFor="spec">OpenAPI Spec URL</Label>
             <Input
               id="spec"
               type="url"
-              placeholder="example.com/openapi.json"
+              placeholder="https://example.com/openapi.json"
               onChange={(event) => setState({ ...state, url: event.target.value })}
               required
             />
+            <p className="text-xs text-muted-foreground">
+              The URL should point to a valid OpenAPI 3.0+ specification for an AEP-compliant API.
+            </p>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="prefix">Path Prefix (optional)</Label>
@@ -67,9 +93,12 @@ export function OASSelector() {
               placeholder="/api/v1"
               onChange={(event) => setState({ ...state, prefix: event.target.value })}
             />
+            <p className="text-xs text-muted-foreground">
+              If your API uses a path prefix (e.g., /api/v1), specify it here.
+            </p>
           </div>
           <Button onClick={onSubmit} type="submit" className="w-full">
-            Continue
+            Explore Resources
           </Button>
         </div>
       </CardContent>
