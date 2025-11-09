@@ -27,10 +27,19 @@ class ResourceSchema {
 
     while ((match = paramRegex.exec(url)) !== null) {
       const paramName = match[1];
-      const parentId = this.parents.get(paramName);
+      let parentId = this.parents.get(paramName);
 
       if (!parentId) {
-        throw new Error(`Missing required parent resource: ${paramName}`);
+        // Try removing _id suffix if present
+        if (paramName.endsWith('_id')) {
+          const nameWithoutSuffix = paramName.slice(0, -3);
+          parentId = this.parents.get(nameWithoutSuffix);
+        }
+
+        if (!parentId) {
+          const parentsMap = Object.fromEntries(this.parents);
+          throw new Error(`Missing required parent resource: ${paramName}. Available parents: ${JSON.stringify(parentsMap)}`);
+        }
       }
 
       resultUrl = resultUrl.replace(`{${paramName}}`, parentId);
@@ -73,7 +82,7 @@ class ResourceSchema {
   properties(): PropertySchema[] {
     const properties: PropertySchema[] = [];
     for (const [name, schema] of Object.entries(this.schema.properties)) {
-      properties.push(new PropertySchema(name, schema.type));
+      properties.push(new PropertySchema(name, (schema as any).type, schema));
     }
     return properties;
   }
@@ -95,10 +104,30 @@ class ResourceSchema {
 class PropertySchema {
   name: string
   type: string
+  schema: any
 
-  constructor(name: string, type: string) {
+  constructor(name: string, type: string, schema?: any) {
     this.name = name;
     this.type = type;
+    this.schema = schema;
+  }
+
+  properties(): PropertySchema[] {
+    if (this.type === 'object' && this.schema?.properties) {
+      const properties: PropertySchema[] = [];
+      for (const [name, schema] of Object.entries(this.schema.properties)) {
+        properties.push(new PropertySchema(name, (schema as any).type, schema));
+      }
+      return properties;
+    }
+    return [];
+  }
+
+  required(): string[] {
+    if (this.type === 'object' && this.schema?.required) {
+      return this.schema.required;
+    }
+    return [];
   }
 }
 

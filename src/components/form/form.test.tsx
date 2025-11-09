@@ -1,69 +1,44 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import CreateForm from './form';
+import { Form } from './form';
 import { ResourceSchema, PropertySchema } from '@/state/openapi';
 import fs from 'fs';
 import { parseOpenAPI } from '@/state/openapi';
-import { toast } from '@/hooks/use-toast';
-
-// Mock hooks
-vi.mock('@/hooks/use-toast', () => ({
-  toast: vi.fn(),
-}));
-
-const mockNavigate = vi.fn();
-let mockParams = {};
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-    useParams: () => mockParams,
-  };
-});
-
-// Create a test store
-const createTestStore = (headers = '') => {
-  return configureStore({
-    reducer: {
-      schema: (state = { value: null, state: 'unset' }) => state,
-      headers: (state = { value: headers }) => state,
-    },
-  });
-};
 
 // Mock ResourceSchema for testing different property types
 const createMockResourceSchema = (properties: PropertySchema[], shouldFail = false, requiredFields: string[] = []): ResourceSchema => {
   const mockSchema = {
     properties: () => properties,
     required: () => requiredFields,
-    create: shouldFail 
+    create: shouldFail
       ? vi.fn().mockRejectedValue(new Error('Creation failed'))
       : vi.fn().mockResolvedValue({}),
     parents: new Map(),
   } as unknown as ResourceSchema;
-  
+
   return mockSchema;
 };
 
-describe('CreateForm', () => {
+describe('Form', () => {
+  const mockOnSuccess = vi.fn();
+  const mockOnError = vi.fn();
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  const renderForm = (resource: ResourceSchema, headers = '') => {
-    const store = createTestStore(headers);
-    
+  const renderForm = (resource: ResourceSchema, headers = '', parentParams = new Map<string, string>()) => {
     return render(
-      <Provider store={store}>
-        <BrowserRouter>
-          <CreateForm resource={resource} />
-        </BrowserRouter>
-      </Provider>
+      <BrowserRouter>
+        <Form
+          resource={resource}
+          headers={headers}
+          parentParams={parentParams}
+          onSuccess={mockOnSuccess}
+          onError={mockOnError}
+        />
+      </BrowserRouter>
     );
   };
 
@@ -212,27 +187,19 @@ describe('CreateForm', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
-  it('sets parent parameters from URL params excluding resourceId', () => {
+  it('sets parent parameters on the resource', () => {
     const properties = [new PropertySchema('name', 'string')];
     const resource = createMockResourceSchema(properties);
-    
-    // Temporarily mock useParams to return specific parameters
-    const originalMockParams = { ...mockParams };
-    mockParams = {
-      parentId: '123',
-      resourceId: '456',
-      categoryId: '789'
-    };
-    
-    renderForm(resource);
-    
-    // Check that parent parameters are set correctly (excluding resourceId)
+
+    const parentParams = new Map<string, string>();
+    parentParams.set('parentId', '123');
+    parentParams.set('categoryId', '789');
+
+    renderForm(resource, '', parentParams);
+
+    // Check that parent parameters are set correctly on the resource
     expect(resource.parents.get('parentId')).toBe('123');
     expect(resource.parents.get('categoryId')).toBe('789');
-    expect(resource.parents.has('resourceId')).toBe(false);
-    
-    // Restore original mockParams
-    mockParams = originalMockParams;
   });
 
   it('handles checkbox checked property correctly', () => {
@@ -254,7 +221,7 @@ describe('CreateForm', () => {
     expect(checkboxInput).not.toBeChecked();
   });
 
-  it('navigates back after successful form submission', async () => {
+  it('calls onSuccess after successful form submission', async () => {
     const properties = [new PropertySchema('name', 'string')];
     const resource = createMockResourceSchema(properties);
     renderForm(resource);
@@ -264,23 +231,7 @@ describe('CreateForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(-1);
-    });
-  });
-
-  it('shows toast notification on successful form submission', async () => {
-    const properties = [new PropertySchema('name', 'string')];
-    const resource = createMockResourceSchema(properties);
-    renderForm(resource);
-
-    // Fill and submit the form
-    fireEvent.change(screen.getByLabelText('name'), { target: { value: 'Test Name' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-
-    await waitFor(() => {
-      expect(toast).toHaveBeenCalledWith({
-        description: 'Created new resource'
-      });
+      expect(mockOnSuccess).toHaveBeenCalled();
     });
   });
 
@@ -297,9 +248,11 @@ describe('CreateForm', () => {
       expect(resource.create).toHaveBeenCalled();
     });
 
-    // Should not navigate or show success toast when creation fails
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(toast).not.toHaveBeenCalled();
+    // Should call onError and not onSuccess when creation fails
+    await waitFor(() => {
+      expect(mockOnError).toHaveBeenCalled();
+    });
+    expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 
   it('allows submission of optional string fields when empty', async () => {
@@ -388,6 +341,247 @@ describe('CreateForm', () => {
         },
         ''
       );
+    });
+  });
+
+  describe('Field component integration', () => {
+    it('renders fields using Field component with proper structure', () => {
+      const properties = [new PropertySchema('name', 'string')];
+      const resource = createMockResourceSchema(properties);
+      const { container } = renderForm(resource);
+
+      // Check that Field wrapper exists
+      const fieldWrapper = container.querySelector('[data-slot="field"]');
+      expect(fieldWrapper).toBeInTheDocument();
+      expect(fieldWrapper).toHaveAttribute('role', 'group');
+    });
+
+    it('renders FieldGroup wrapper around all fields', () => {
+      const properties = [
+        new PropertySchema('name', 'string'),
+        new PropertySchema('age', 'integer')
+      ];
+      const resource = createMockResourceSchema(properties);
+      const { container } = renderForm(resource);
+
+      // Check that FieldGroup wrapper exists
+      const fieldGroup = container.querySelector('[data-slot="field-group"]');
+      expect(fieldGroup).toBeInTheDocument();
+
+      // Check that multiple fields exist within the field group
+      const fields = fieldGroup?.querySelectorAll('[data-slot="field"]');
+      expect(fields?.length).toBe(2);
+    });
+
+    it('sets data-invalid attribute on Field when validation fails', async () => {
+      const properties = [new PropertySchema('age', 'integer')];
+      const resource = createMockResourceSchema(properties, false, ['age']);
+      const { container } = renderForm(resource);
+
+      const submitButton = screen.getByRole('button', { name: 'Submit' });
+
+      // Submit with invalid value
+      fireEvent.change(screen.getByLabelText('age'), { target: { value: 'not a number' } });
+      fireEvent.click(submitButton);
+
+      await waitFor(() => {
+        const fieldWrapper = container.querySelector('[data-slot="field"]');
+        expect(fieldWrapper).toHaveAttribute('data-invalid', 'true');
+      });
+    });
+
+    it('sets aria-invalid on input when validation fails', async () => {
+      const properties = [new PropertySchema('name', 'string')];
+      const resource = createMockResourceSchema(properties, false, ['name']);
+      renderForm(resource);
+
+      const submitButton = screen.getByRole('button', { name: 'Submit' });
+      const nameInput = screen.getByLabelText('name');
+
+      // Submit without entering a value
+      fireEvent.click(submitButton);
+
+      await waitFor(() => {
+        expect(nameInput).toHaveAttribute('aria-invalid', 'true');
+      });
+    });
+
+    it('renders FieldError when validation fails', async () => {
+      const properties = [new PropertySchema('name', 'string')];
+      const resource = createMockResourceSchema(properties, false, ['name']);
+      const { container } = renderForm(resource);
+
+      const submitButton = screen.getByRole('button', { name: 'Submit' });
+
+      // Submit without entering a value
+      fireEvent.click(submitButton);
+
+      await waitFor(() => {
+        const fieldError = container.querySelector('[data-slot="field-error"]');
+        expect(fieldError).toBeInTheDocument();
+        expect(fieldError).toHaveAttribute('role', 'alert');
+      });
+    });
+
+    it('properly associates labels with inputs using htmlFor', () => {
+      const properties = [new PropertySchema('email', 'string')];
+      const resource = createMockResourceSchema(properties);
+      renderForm(resource);
+
+      const label = screen.getByText('email');
+      const input = screen.getByLabelText('email');
+
+      expect(label).toHaveAttribute('for', input.id);
+      expect(input).toHaveAttribute('id');
+    });
+  });
+
+  describe('Nested object rendering', () => {
+    it('renders nested objects in FieldSet with FieldLegend', () => {
+      const addressSchema = {
+        type: 'object',
+        properties: {
+          street: { type: 'string' },
+          city: { type: 'string' }
+        },
+        required: []
+      };
+
+      const addressProperty = new PropertySchema('address', 'object', addressSchema);
+      const properties = [
+        new PropertySchema('name', 'string'),
+        addressProperty
+      ];
+
+      const resource = createMockResourceSchema(properties);
+      const { container } = renderForm(resource);
+
+      // Check that FieldSet exists for nested object
+      const fieldSet = container.querySelector('[data-slot="field-set"]');
+      expect(fieldSet).toBeInTheDocument();
+      expect(fieldSet?.tagName).toBe('FIELDSET');
+
+      // Check that FieldLegend exists with the property name
+      const legend = container.querySelector('[data-slot="field-legend"]');
+      expect(legend).toBeInTheDocument();
+      expect(legend?.tagName).toBe('LEGEND');
+      expect(legend?.textContent).toBe('address');
+    });
+
+    it('renders nested object properties as separate fields', () => {
+      const addressSchema = {
+        type: 'object',
+        properties: {
+          street: { type: 'string' },
+          city: { type: 'string' },
+          zipCode: { type: 'string' }
+        },
+        required: []
+      };
+
+      const addressProperty = new PropertySchema('address', 'object', addressSchema);
+      const properties = [addressProperty];
+
+      const resource = createMockResourceSchema(properties);
+      renderForm(resource);
+
+      // Check that nested fields are rendered
+      expect(screen.getByLabelText('street')).toBeInTheDocument();
+      expect(screen.getByLabelText('city')).toBeInTheDocument();
+      expect(screen.getByLabelText('zipCode')).toBeInTheDocument();
+    });
+
+    it('submits nested object data with correct structure', async () => {
+      const addressSchema = {
+        type: 'object',
+        properties: {
+          street: { type: 'string' },
+          city: { type: 'string' }
+        },
+        required: []
+      };
+
+      const addressProperty = new PropertySchema('address', 'object', addressSchema);
+      const properties = [
+        new PropertySchema('name', 'string'),
+        addressProperty
+      ];
+
+      const resource = createMockResourceSchema(properties);
+      renderForm(resource);
+
+      // Fill in both top-level and nested fields
+      fireEvent.change(screen.getByLabelText('name'), { target: { value: 'John Doe' } });
+      fireEvent.change(screen.getByLabelText('street'), { target: { value: '123 Main St' } });
+      fireEvent.change(screen.getByLabelText('city'), { target: { value: 'Springfield' } });
+
+      // Submit the form
+      fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+      await waitFor(() => {
+        expect(resource.create).toHaveBeenCalledWith(
+          {
+            name: 'John Doe',
+            address: {
+              street: '123 Main St',
+              city: 'Springfield'
+            }
+          },
+          ''
+        );
+      });
+    });
+
+    it('validates required fields in nested objects', async () => {
+      const addressSchema = {
+        type: 'object',
+        properties: {
+          street: { type: 'string' },
+          city: { type: 'string' }
+        },
+        required: ['street']
+      };
+
+      const addressProperty = new PropertySchema('address', 'object', addressSchema);
+      const properties = [addressProperty];
+
+      const resource = createMockResourceSchema(properties, false, ['address']);
+      renderForm(resource);
+
+      const submitButton = screen.getByRole('button', { name: 'Submit' });
+
+      // Submit without filling required nested field
+      fireEvent.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Required')).toBeInTheDocument();
+      });
+    });
+
+    it('creates nested FieldGroup for nested object properties', () => {
+      const addressSchema = {
+        type: 'object',
+        properties: {
+          street: { type: 'string' },
+          city: { type: 'string' }
+        },
+        required: []
+      };
+
+      const addressProperty = new PropertySchema('address', 'object', addressSchema);
+      const properties = [addressProperty];
+
+      const resource = createMockResourceSchema(properties);
+      const { container } = renderForm(resource);
+
+      // Check that there are multiple FieldGroups (one main, one for nested)
+      const fieldGroups = container.querySelectorAll('[data-slot="field-group"]');
+      expect(fieldGroups.length).toBeGreaterThanOrEqual(2);
+
+      // Check that nested FieldGroup is inside FieldSet
+      const fieldSet = container.querySelector('[data-slot="field-set"]');
+      const nestedFieldGroup = fieldSet?.querySelector('[data-slot="field-group"]');
+      expect(nestedFieldGroup).toBeInTheDocument();
     });
   });
 });
