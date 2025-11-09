@@ -3,7 +3,8 @@ import { Field, FieldGroup, FieldLabel, FieldError, FieldSet, FieldLegend } from
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import React, { useMemo, useEffect } from "react";
+import { ButtonGroup } from "@/components/ui/button-group";
+import React, { useMemo, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -13,6 +14,7 @@ import { ResourceSchema, PropertySchema } from "@/state/openapi";
 import { ResourceInstance } from "@/state/fetch";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { JsonEditor } from 'json-edit-react';
 
 type FormProps = {
     resource: ResourceSchema;
@@ -81,6 +83,10 @@ function createValidationSchema(properties: PropertySchema[], requiredFields: st
 
 // Form is responsible for rendering a form based on the resource schema.
 export function Form(props: FormProps) {
+    const [mode, setMode] = useState<'form' | 'json'>('form');
+    const [jsonData, setJsonData] = useState<Record<string, unknown>>({});
+    const [jsonError, setJsonError] = useState<string | null>(null);
+
     const validationSchema = useMemo(() => {
         const properties = props.resource.properties();
         const requiredFields = props.resource.required();
@@ -96,6 +102,37 @@ export function Form(props: FormProps) {
         defaultValues: defaultValues
     });
 
+    // Initialize JSON data from form values
+    useEffect(() => {
+        setJsonData(form.getValues());
+    }, [props.resourceInstance]);
+
+    // Sync form to JSON when switching to JSON mode
+    const handleModeChange = (newMode: 'form' | 'json') => {
+        if (newMode === 'json') {
+            // Switching to JSON mode - sync form data to JSON
+            setJsonData(form.getValues());
+            setJsonError(null);
+        } else {
+            // Switching to form mode - sync JSON data to form
+            try {
+                // Validate JSON against schema
+                validationSchema.parse(jsonData);
+                // Update form with JSON data
+                Object.keys(jsonData).forEach((key) => {
+                    form.setValue(key, jsonData[key]);
+                });
+                setJsonError(null);
+            } catch (error) {
+                if (error instanceof z.ZodError) {
+                    setJsonError(error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '));
+                    return; // Don't switch modes if validation fails
+                }
+            }
+        }
+        setMode(newMode);
+    };
+
     const onSubmit = ((value: Record<string, unknown>) => {
         // Value is the properly formed JSON body.
         // Just need to submit it and call the appropriate callback.
@@ -105,6 +142,22 @@ export function Form(props: FormProps) {
             props.onError(error);
         });
     });
+
+    const handleFormSubmit = () => {
+        if (mode === 'json') {
+            // Validate JSON data before submitting
+            try {
+                const validated = validationSchema.parse(jsonData);
+                onSubmit(validated);
+            } catch (error) {
+                if (error instanceof z.ZodError) {
+                    setJsonError(error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '));
+                }
+            }
+        } else {
+            form.handleSubmit(onSubmit)();
+        }
+    };
 
     const getInputType = (propertyType: string) => {
         switch (propertyType) {
@@ -179,12 +232,46 @@ export function Form(props: FormProps) {
 
     return (
         <FormProvider {...form}>
-            <form>
-                <FieldGroup>
-                    {formBuilder}
-                </FieldGroup>
-                <Button onClick={form.handleSubmit(onSubmit)} type="submit">Submit</Button>
-            </form>
+            <div className="space-y-4">
+                <ButtonGroup>
+                    <Button
+                        type="button"
+                        variant={mode === 'form' ? 'default' : 'outline'}
+                        onClick={() => handleModeChange('form')}
+                    >
+                        Form
+                    </Button>
+                    <Button
+                        type="button"
+                        variant={mode === 'json' ? 'default' : 'outline'}
+                        onClick={() => handleModeChange('json')}
+                    >
+                        JSON
+                    </Button>
+                </ButtonGroup>
+
+                {mode === 'form' ? (
+                    <form>
+                        <FieldGroup>
+                            {formBuilder}
+                        </FieldGroup>
+                    </form>
+                ) : (
+                    <div className="space-y-2">
+                        <JsonEditor
+                            data={jsonData}
+                            setData={setJsonData}
+                        />
+                        {jsonError && (
+                            <div className="text-sm text-red-600 dark:text-red-400" role="alert">
+                                {jsonError}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <Button onClick={handleFormSubmit} type="submit">Submit</Button>
+            </div>
         </FormProvider>
     )
 }
