@@ -27,10 +27,19 @@ class ResourceSchema {
 
     while ((match = paramRegex.exec(url)) !== null) {
       const paramName = match[1];
-      const parentId = this.parents.get(paramName);
+      let parentId = this.parents.get(paramName);
 
       if (!parentId) {
-        throw new Error(`Missing required parent resource: ${paramName}`);
+        // Try removing _id suffix if present
+        if (paramName.endsWith('_id')) {
+          const nameWithoutSuffix = paramName.slice(0, -3);
+          parentId = this.parents.get(nameWithoutSuffix);
+        }
+
+        if (!parentId) {
+          const parentsMap = Object.fromEntries(this.parents);
+          throw new Error(`Missing required parent resource: ${paramName}. Available parents: ${JSON.stringify(parentsMap)}`);
+        }
       }
 
       resultUrl = resultUrl.replace(`{${paramName}}`, parentId);

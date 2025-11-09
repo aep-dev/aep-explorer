@@ -121,7 +121,7 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
                     </EmptyDescription>
                 </EmptyHeader>
                 <EmptyContent>
-                    <Button onClick={() => navigate('_create')}>
+                    <Button onClick={() => navigate(resource.substituteUrlParameters(resource.base_url()) + "/_create")}>
                         Create {resource.plural_name}
                     </Button>
                 </EmptyContent>
