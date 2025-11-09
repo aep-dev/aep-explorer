@@ -34,7 +34,7 @@ export default function UpdatePage(props: UpdatePageProps) {
     }, [resourceId, props.schema])
 
     const handleSuccess = () => {
-        toast({ description: `Updated ${resourceInstance?.properties['id']}` });
+        toast({ description: `Updated ${resourceInstance?.properties['path']}` });
         navigate(-1);
     };
 
