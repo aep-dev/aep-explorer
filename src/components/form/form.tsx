@@ -15,6 +15,7 @@ import { ResourceInstance } from "@/state/fetch";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { JsonEditor } from 'json-edit-react';
+import { createValidationSchema } from "@/lib/utils";
 
 type FormProps = {
     resource: ResourceSchema;
@@ -25,60 +26,6 @@ type FormProps = {
     // Current resource state used to fill in the form's default values for updating (optional)
     resourceInstance?: ResourceInstance;
     onSubmitOperation: (value: Record<string, unknown>) => Promise<void>;
-}
-
-function createValidationSchema(properties: PropertySchema[], requiredFields: string[]): z.ZodSchema {
-    // Validation happens through Zod. 
-    // This function converts an OpenAPI schema to a Zod schema.
-    const schemaObject: Record<string, z.ZodTypeAny> = {};
-
-    for (const property of properties) {
-        if (!property) continue; // Skip null properties
-        let fieldSchema: z.ZodTypeAny;
-        const isRequired = requiredFields.includes(property.name);
-
-        switch (property.type) {
-            case 'object':
-                const nestedProperties = property.properties();
-                const nestedRequired = property.required();
-                fieldSchema = createValidationSchema(nestedProperties, nestedRequired);
-                break;
-            case 'integer':
-                fieldSchema = z.coerce.number().int({
-                    message: `${property.name} must be an integer`
-                });
-                break;
-            case 'number':
-                fieldSchema = z.coerce.number({
-                    message: `${property.name} must be a number`
-                });
-                break;
-            case 'boolean':
-                fieldSchema = z.coerce.boolean({
-                    message: `${property.name} must be true or false`
-                });
-                break;
-            case 'string':
-            default:
-                if (isRequired) {
-                    fieldSchema = z.string().min(1, {
-                        message: `${property.name} is required`
-                    });
-                } else {
-                    fieldSchema = z.string().optional();
-                }
-                break;
-        }
-
-        // Make numeric and boolean fields optional if not required
-        if (!isRequired) {
-            fieldSchema = fieldSchema.optional();
-        }
-
-        schemaObject[property.name] = fieldSchema;
-    }
-
-    return z.object(schemaObject);
 }
 
 // Form is responsible for rendering a form based on the resource schema.

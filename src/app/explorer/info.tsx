@@ -7,6 +7,7 @@ import { ResourceSchema } from "@/state/openapi";
 import { useAppSelector } from "@/hooks/store";
 import { selectChildResources } from "@/state/store";
 import ResourceListPage from "./resource_list";
+import { CustomMethodComponent } from "@/components/custom_method";
 
 type ResourceProperties = {
     path: string;
@@ -52,6 +53,10 @@ export default function InfoPage(props: InfoPageProps) {
             return <Spinner />
     }, [state]);
 
+    const customMethods = useMemo(() => {
+        return props.resource.customMethods();
+    }, [props.resource]);
+
     return (
         <div className="space-y-6">
             {/* Resource Instance card. */}
@@ -64,11 +69,34 @@ export default function InfoPage(props: InfoPageProps) {
                 </CardContent>
             </Card>
 
+            {/* Custom Methods */}
+            {state && customMethods.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Custom Methods</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {customMethods.map((customMethod) => (
+                            <CustomMethodComponent
+                                key={customMethod.name}
+                                resourceInstance={state}
+                                customMethod={customMethod}
+                            />
+                        ))}
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Listing Child Resources */}
             {childResources.map((childResource) => (
-                <div key={childResource.singular_name} className="mt-6">
-                    <ResourceListPage resource={childResource} />
-                </div>
+                <Card key={childResource.singular_name}>
+                    <CardHeader>
+                        <CardTitle>{childResource.plural_name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ResourceListPage resource={childResource} />
+                    </CardContent>
+                </Card>
             ))}
         </div>
     )
