@@ -1,6 +1,7 @@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { useEffect, useMemo, useState, } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -23,7 +24,7 @@ export default function UpdateForm(props: UpdateFormProps) {
     if(state) {
         return <UpdateFormInner resource={state} schema={props.schema} />
     } else {
-        return <div>Loading...</div>
+        return <Spinner />
     }
 }
 
@@ -49,7 +50,7 @@ function UpdateFormInner(props: UpdateFormInnerProps) {
     const formBuilder = useMemo(() => {
             return props.resource.schema.properties().map((p) => {
                 if (!p) {
-                    return (<div>Loading...</div>)
+                    return (<Spinner />)
                 }
                 let defaultValue = "";
                 if(props.resource.properties[p.name]) {

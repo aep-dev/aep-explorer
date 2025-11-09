@@ -184,7 +184,7 @@ describe('Form', () => {
     const resource = createMockResourceSchema(properties);
     renderForm(resource);
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();
   });
 
   it('sets parent parameters on the resource', () => {
