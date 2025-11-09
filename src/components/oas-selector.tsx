@@ -20,7 +20,7 @@ interface SpecSpecifier {
   prefix?: string;
 }
 
-// A form to select an OpenAPI spec URL and set it in the application state.
+// A form to select an OpenAPI document URL and set it in the application state.
 export function OASSelector() {
   const [state, setState] = useState<SpecSpecifier>({ url: "", prefix: "" });
   const dispatch = useAppDispatch();
@@ -35,7 +35,7 @@ export function OASSelector() {
       );
       dispatch(setSchema(new OpenAPI(apiClient)));
     } catch (error) {
-      toast({description: `Failed to fetch OpenAPI spec: ${error}`})
+      toast({description: `Failed to fetch OpenAPI document: ${error}`})
     }
   };
 
@@ -66,14 +66,14 @@ export function OASSelector() {
             <li>Explore resource relationships and custom methods</li>
           </ul>
           <p className="pt-2">
-            Enter your AEP-compliant OpenAPI Spec URL below to get started.
+            Enter a URL for your AEP-compliant, OpenAPI document to get started.
           </p>
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="spec">OpenAPI Spec URL</Label>
+            <Label htmlFor="spec">OpenAPI document URL</Label>
             <Input
               id="spec"
               type="url"
@@ -82,7 +82,7 @@ export function OASSelector() {
               required
             />
             <p className="text-xs text-muted-foreground">
-              The URL should point to a valid OpenAPI 3.0+ specification for an AEP-compliant API.
+              The URL should point to a valid OpenAPI 3.0+ document for an AEP-compliant API.
             </p>
           </div>
           <div className="grid gap-2">
