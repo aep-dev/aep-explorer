@@ -172,9 +172,9 @@ describe('Form', () => {
     });
   });
 
-  it('works with real OpenAPI schema', () => {
+  it('works with real OpenAPI schema', async () => {
     const fileContents = fs.readFileSync('src/example_oas.json', 'utf8');
-    const openAPI = parseOpenAPI(fileContents);
+    const openAPI = await parseOpenAPI(fileContents);
     const bookResource = openAPI.resourceForName('books');
     
     renderForm(bookResource);

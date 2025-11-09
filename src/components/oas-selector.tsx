@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { OpenAPI } from "@/state/openapi";
 import { setSchema } from "@/state/store";
 import { useState } from "react";
+import { fetchOpenAPI, APIClient } from "@aep_dev/aep-lib-ts";
 
 // A form to select an OpenAPI spec URL and set it in the application state.
 export function OASSelector() {
@@ -22,9 +23,9 @@ export function OASSelector() {
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await fetch(state);
-      const data = await response.json();
-      dispatch(setSchema(new OpenAPI(data)));
+      const openApiSpec = await fetchOpenAPI(state);
+      const apiClient = await APIClient.fromOpenAPI(openApiSpec);
+      dispatch(setSchema(new OpenAPI(apiClient)));
     } catch (error) {
       toast({description: `Failed to fetch OpenAPI spec: ${error}`})
     }

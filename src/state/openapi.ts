@@ -1,23 +1,28 @@
 import { List, ResourceInstance, Create, Get } from './fetch';
-// Responsible for handling the schema for a given resource.
+import { Resource, Schema, APIClient } from '@aep_dev/aep-lib-ts';
+
+// Adapter class that wraps aep-lib-ts Resource with additional UI-specific functionality
 class ResourceSchema {
-  schema: any;
-  singular_name: string;
-  plural_name: string;
+  private resource: Resource;
   server_url: string;
   parents: Map<string, string>;
 
-  constructor(
-    singular_name: string,
-    plural_name: string,
-    schema: any,
-    server_url: string,
-  ) {
-    this.singular_name = singular_name;
-    this.plural_name = plural_name;
-    this.schema = schema;
+  constructor(resource: Resource, server_url: string) {
+    this.resource = resource;
     this.server_url = server_url;
     this.parents = new Map();
+  }
+
+  get singular_name(): string {
+    return this.resource.singular;
+  }
+
+  get plural_name(): string {
+    return this.resource.plural;
+  }
+
+  get schema(): Schema {
+    return this.resource.schema;
   }
 
   public substituteUrlParameters(url: string): string {
@@ -71,7 +76,10 @@ class ResourceSchema {
   }
 
   base_url(): string {
-    const pattern = this.schema["x-aep-resource"]["patterns"][0];
+    const pattern = this.resource.schema["x-aep-resource"]?.patterns?.[0];
+    if (!pattern) {
+      throw new Error(`No pattern found for resource ${this.resource.singular}`);
+    }
     const subset = pattern.substring(0, pattern.lastIndexOf("/"));
     if (subset[0] != "/") {
       return "/" + subset;
@@ -81,32 +89,29 @@ class ResourceSchema {
 
   properties(): PropertySchema[] {
     const properties: PropertySchema[] = [];
-    for (const [name, schema] of Object.entries(this.schema.properties)) {
-      properties.push(new PropertySchema(name, (schema as any).type, schema));
+    if (this.resource.schema.properties) {
+      for (const [name, schema] of Object.entries(this.resource.schema.properties)) {
+        properties.push(new PropertySchema(name, schema.type || 'object', schema));
+      }
     }
     return properties;
   }
 
   required(): string[] {
-    return this.schema.required || [];
+    return this.resource.schema.required || [];
   }
 
   parentResources(): string[] {
-    const resource = this.schema["x-aep-resource"]
-    if ('parents' in resource) {
-      return resource.parents;
-    } else {
-      return [];
-    }
+    return this.resource.parents.map(p => p.singular);
   }
 }
 
 class PropertySchema {
   name: string
   type: string
-  schema: any
+  schema: Schema
 
-  constructor(name: string, type: string, schema?: any) {
+  constructor(name: string, type: string, schema: Schema) {
     this.name = name;
     this.type = type;
     this.schema = schema;
@@ -116,7 +121,7 @@ class PropertySchema {
     if (this.type === 'object' && this.schema?.properties) {
       const properties: PropertySchema[] = [];
       for (const [name, schema] of Object.entries(this.schema.properties)) {
-        properties.push(new PropertySchema(name, (schema as any).type, schema));
+        properties.push(new PropertySchema(name, schema.type || 'object', schema));
       }
       return properties;
     }
@@ -131,32 +136,41 @@ class PropertySchema {
   }
 }
 
+// Adapter class that wraps aep-lib-ts APIClient with UI-specific functionality
 class OpenAPI {
-  schema: any;
+  private apiClient: { resources: () => Record<string, Resource>; serverUrl: () => string } | null = null;
+  private serverUrl: string = '';
+  private _resources: ResourceSchema[] | null = null;
 
-  constructor(schema: any) {
-    this.schema = schema;
+  constructor(
+    apiClient: { resources: () => Record<string, Resource>; serverUrl: () => string } | null = null,
+    serverUrl?: string
+  ) {
+    this.apiClient = apiClient;
+    if (serverUrl) {
+      this.serverUrl = serverUrl;
+    } else if (apiClient) {
+      this.serverUrl = apiClient.serverUrl();
+    }
   }
 
   resources(): ResourceSchema[] {
-    const resources: ResourceSchema[] = [];
-
-    if (this.schema?.components?.schemas) {
-      for (const [name, schema] of Object.entries(
-        this.schema.components.schemas,
-      )) {
-        if (Object.prototype.hasOwnProperty.call(schema, "x-aep-resource")) {
-          resources.push(
-            new ResourceSchema(
-              schema["x-aep-resource"]["singular"],
-              schema["x-aep-resource"]["plural"],
-              schema,
-              this.schema.servers[0].url,
-            ),
-          );
-        }
-      }
+    if (this._resources) {
+      return this._resources;
     }
+
+    if (!this.apiClient) {
+      return [];
+    }
+
+    const resources: ResourceSchema[] = [];
+    const resourceMap = this.apiClient.resources();
+
+    for (const resource of Object.values(resourceMap)) {
+      resources.push(new ResourceSchema(resource, this.serverUrl));
+    }
+
+    this._resources = resources;
     return resources;
   }
 
@@ -179,7 +193,7 @@ class OpenAPI {
     const allResources = this.resources();
 
     for (const resource of allResources) {
-      const parents = resource.schema["x-aep-resource"]["parents"] || [];
+      const parents = resource.schema["x-aep-resource"]?.parents || [];
       // Get all valid parent names (current resource + its parents)
       const validParents = new Set([r.singular_name, ...r.parents.keys()]);
 
@@ -203,10 +217,12 @@ class OpenAPI {
   }
 }
 
-function parseOpenAPI(jsonString: string): OpenAPI {
+// Helper function to create OpenAPI from raw JSON using aep-lib-ts
+async function parseOpenAPI(jsonString: string): Promise<OpenAPI> {
   try {
     const parsed = JSON.parse(jsonString);
-    return new OpenAPI(parsed);
+    const apiClient = await APIClient.fromOpenAPI(parsed);
+    return new OpenAPI(apiClient);
   } catch (error) {
     throw new Error(
       `Failed to parse OpenAPI schema: ${error instanceof Error ? error.message : String(error)}`,
