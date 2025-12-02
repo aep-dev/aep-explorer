@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { CustomMethod } from "@aep_dev/aep-lib-ts";
-import { ResourceInstance } from "@/state/fetch";
+import { ResourceInstance, mockAwareFetch } from "@/state/fetch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,7 @@ export function CustomMethodComponent(props: CustomMethodProps) {
             // Construct the URL for the custom method
             const url = `${props.resourceInstance.schema.server_url}/${props.resourceInstance.path}:${props.customMethod.name}`;
 
-            const response = await fetch(url, {
+            const response = await mockAwareFetch(url, {
                 method: props.customMethod.method,
                 headers: {
                     'Content-Type': 'application/json',

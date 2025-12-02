@@ -1,5 +1,12 @@
 import { toast } from "@/hooks/use-toast";
 import { ResourceSchema } from "./openapi";
+import MockResourceStore from "./mock-store";
+import { store } from "./store";
+
+// Helper function to check if mock server is enabled
+function isMockServerEnabled(): boolean {
+  return store.getState().mockServer.enabled;
+}
 
 // Helper function to check for API errors in response body
 function checkForApiErrors(responseData: any): void {
@@ -118,6 +125,21 @@ function getHeaders(headers: string): object {
 
 async function List(url: string, r: ResourceSchema, headersString: string = ""): Promise<ResourceInstance[]> {
     try {
+        // Use mock server if enabled
+        if (isMockServerEnabled()) {
+            const mockStore = MockResourceStore.getInstance();
+            const list_response = mockStore.list(url);
+
+            const results: ResourceInstance[] = [];
+            if (list_response?.results && Array.isArray(list_response.results)) {
+                for(const result of list_response.results) {
+                    results.push(new ResourceInstance(result['id'], result['path'], result, r));
+                }
+            }
+            return results;
+        }
+
+        // Real network call
         const response = await fetch(url, {headers: getHeaders(headersString) as HeadersInit});
         const list_response = await handleResponse(response, 'List');
 
@@ -135,11 +157,19 @@ async function List(url: string, r: ResourceSchema, headersString: string = ""):
 
 async function Delete(url: string, headers: string = ""): Promise<void> {
   try {
+    // Use mock server if enabled
+    if (isMockServerEnabled()) {
+      const mockStore = MockResourceStore.getInstance();
+      mockStore.delete(url);
+      return;
+    }
+
+    // Real network call
     const response = await fetch(url, {
       method: 'DELETE',
       headers: getHeaders(headers) as HeadersInit
     });
-    
+
     await handleResponse(response, 'Delete');
   } catch (error) {
     handleError(error, 'delete resource');
@@ -148,9 +178,17 @@ async function Delete(url: string, headers: string = ""): Promise<void> {
 
 async function Get(url: string, r: ResourceSchema, headersString: string = ""): Promise<ResourceInstance> {
   try {
+    // Use mock server if enabled
+    if (isMockServerEnabled()) {
+      const mockStore = MockResourceStore.getInstance();
+      const result = mockStore.get(url);
+      return new ResourceInstance(result['id'], result['path'], result, r);
+    }
+
+    // Real network call
     const response = await fetch(url, { headers: getHeaders(headersString) as HeadersInit});
     const result = await handleResponse(response, 'Get');
-    
+
     return new ResourceInstance(result['id'], result['path'], result, r);
   } catch (error) {
     handleError(error, 'get resource');
@@ -159,12 +197,20 @@ async function Get(url: string, r: ResourceSchema, headersString: string = ""): 
 
 async function Create(url: string, contents: object, headersString: string = ""): Promise<void> {
   try {
+    // Use mock server if enabled
+    if (isMockServerEnabled()) {
+      const mockStore = MockResourceStore.getInstance();
+      mockStore.create(url, contents);
+      return;
+    }
+
+    // Real network call
     const response = await fetch(url, {
       method: 'POST',
       headers: getHeaders(headersString) as HeadersInit,
       body: JSON.stringify(contents),
     });
-    
+
     await handleResponse(response, 'Create');
   } catch (error) {
     handleError(error, 'create resource');
@@ -173,16 +219,45 @@ async function Create(url: string, contents: object, headersString: string = "")
 
 async function Patch(url: string, contents: object, headersString: string = ""): Promise<void> {
   try {
+    // Use mock server if enabled
+    if (isMockServerEnabled()) {
+      const mockStore = MockResourceStore.getInstance();
+      mockStore.update(url, contents);
+      return;
+    }
+
+    // Real network call
     const response = await fetch(url, {
       method: 'PATCH',
       headers: getHeaders(headersString) as HeadersInit,
       body: JSON.stringify(contents),
     });
-    
+
     await handleResponse(response, 'Patch');
   } catch (error) {
     handleError(error, 'patch resource');
   }
 }
 
-export {ResourceInstance, List, Create, Get, Delete, Patch}
+/**
+ * Mock-aware fetch wrapper for custom methods
+ * Custom methods are executed but return a success response from the mock server
+ */
+async function mockAwareFetch(url: string, options?: RequestInit): Promise<Response> {
+  if (isMockServerEnabled()) {
+    // For mock server, simulate a successful custom method call
+    // Return a mock response
+    return new Response(
+      JSON.stringify({ success: true, message: 'Custom method executed (mock)' }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  }
+
+  // Real network call
+  return fetch(url, options);
+}
+
+export {ResourceInstance, List, Create, Get, Delete, Patch, mockAwareFetch}
