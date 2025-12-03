@@ -77,16 +77,41 @@ const headersReducer = headersSlice.reducer;
 
 export const selectHeaders = (state: RootState) => state.headers.value;
 
+// Mock Server reducers + selectors.
+interface MockServerState {
+  enabled: boolean
+}
+
+const initialMockServerState: MockServerState = {
+  enabled: false
+}
+
+const mockServerSlice = createSlice({
+  name: 'mockServer',
+  initialState: initialMockServerState,
+  reducers: {
+    setMockServerEnabled: (state, action: PayloadAction<boolean>) => {
+      state.enabled = action.payload
+    }
+  }
+})
+
+const {setMockServerEnabled} = mockServerSlice.actions;
+const mockServerReducer = mockServerSlice.reducer;
+
+export const selectMockServerEnabled = (state: RootState) => state.mockServer.enabled;
+
 // Store
 const store = configureStore({
     reducer: {
         schema: schemaReducer,
-        headers: headersReducer
+        headers: headersReducer,
+        mockServer: mockServerReducer
     }
 })
 
 
-export {setSchema, schemaReducer, store, setHeaders}
+export {setSchema, schemaReducer, store, setHeaders, setMockServerEnabled}
 
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
