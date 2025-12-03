@@ -8,10 +8,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAppDispatch } from "@/hooks/store";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { toast } from "@/hooks/use-toast";
 import { OpenAPI } from "@/state/openapi";
-import { setSchema } from "@/state/store";
+import { setSchema, selectMockServerEnabled, setMockServerEnabled } from "@/state/store";
 import { useState } from "react";
 import { fetchOpenAPI, APIClient } from "@aep_dev/aep-lib-ts";
 
@@ -23,6 +24,7 @@ interface SpecSpecifier {
 // A form to select an OpenAPI document URL and set it in the application state.
 export function OASSelector() {
   const [state, setState] = useState<SpecSpecifier>({ url: "", prefix: "" });
+  const mockServerEnabled = useAppSelector(selectMockServerEnabled);
   const dispatch = useAppDispatch();
 
   const onSubmit = async (event: React.FormEvent) => {
@@ -95,6 +97,24 @@ export function OASSelector() {
             />
             <p className="text-xs text-muted-foreground">
               If your API uses a path prefix (e.g., /api/v1), specify it here.
+            </p>
+          </div>
+          <div className="grid gap-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="mock-server"
+                checked={mockServerEnabled}
+                onCheckedChange={(checked) => dispatch(setMockServerEnabled(checked === true))}
+              />
+              <Label
+                htmlFor="mock-server"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Use Mock Server
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Experimental. Uses generated mock data; no network calls will be made to your API.
             </p>
           </div>
           <Button onClick={onSubmit} type="submit" className="w-full">

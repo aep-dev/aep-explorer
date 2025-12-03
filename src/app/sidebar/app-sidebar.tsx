@@ -9,9 +9,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
-import { selectHeaders, selectRootResources, setHeaders, selectMockServerEnabled, setMockServerEnabled } from "@/state/store";
+import { selectHeaders, selectRootResources, setHeaders } from "@/state/store";
 import { Label } from "../../components/ui/label";
-import { Checkbox } from "../../components/ui/checkbox";
 import { ResourceTypeList } from "@/components/resource_types/resource_type_list";
 
 // The AppSidebar. This fetches the list of root resources from the schema and displays them.
@@ -22,7 +21,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props}>
       <SidebarHeader>
         <HeadersInput />
-        <MockServerToggle />
       </SidebarHeader>
       <SidebarContent>
         <ResourceTypeList resources={resources} />
@@ -56,27 +54,5 @@ export function HeadersInput() {
         </SidebarGroupContent>
       </SidebarGroup>
     </form>
-  );
-}
-
-export function MockServerToggle() {
-  const mockServerEnabled = useAppSelector(selectMockServerEnabled);
-  const dispatch = useAppDispatch();
-
-  const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setMockServerEnabled(event.target.checked));
-  };
-
-  return (
-    <SidebarGroup className="py-2">
-      <SidebarGroupContent>
-        <Checkbox
-          id="mock-server"
-          checked={mockServerEnabled}
-          onChange={handleToggle}
-          label="Use Mock Server"
-        />
-      </SidebarGroupContent>
-    </SidebarGroup>
   );
 }
