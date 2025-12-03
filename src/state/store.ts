@@ -1,6 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { OpenAPI, ResourceSchema } from './openapi'
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist'
+import storage from 'redux-persist/lib/storage'
 
 // Schema reducers + selectors.
 interface SchemaState {
@@ -101,17 +103,74 @@ const mockServerReducer = mockServerSlice.reducer;
 
 export const selectMockServerEnabled = (state: RootState) => state.mockServer.enabled;
 
-// Store
-const store = configureStore({
-    reducer: {
-        schema: schemaReducer,
-        headers: headersReducer,
-        mockServer: mockServerReducer
+// Spec Config reducers + selectors.
+interface SpecConfigState {
+  url: string
+  prefix: string
+}
+
+const initialSpecConfigState: SpecConfigState = {
+  url: "",
+  prefix: ""
+}
+
+const specConfigSlice = createSlice({
+  name: 'specConfig',
+  initialState: initialSpecConfigState,
+  reducers: {
+    setSpecConfig: (state, action: PayloadAction<{ url: string; prefix: string }>) => {
+      state.url = action.payload.url
+      state.prefix = action.payload.prefix
     }
+  }
 })
 
+const {setSpecConfig} = specConfigSlice.actions;
+const specConfigReducer = specConfigSlice.reducer;
 
-export {setSchema, schemaReducer, store, setHeaders, setMockServerEnabled}
+export const selectSpecConfig = (state: RootState) => state.specConfig;
+
+// Persist configuration
+const persistConfig = {
+  key: 'root',
+  storage,
+  whitelist: ['headers', 'mockServer', 'specConfig'], // Only persist these slices
+}
+
+// Combine reducers
+const rootReducer = {
+  schema: schemaReducer,
+  headers: headersReducer,
+  mockServer: mockServerReducer,
+  specConfig: specConfigReducer
+}
+
+// Create persisted reducer
+const persistedReducer = persistReducer(persistConfig,
+  (state, action) => {
+    return {
+      schema: schemaReducer(state?.schema, action),
+      headers: headersReducer(state?.headers, action),
+      mockServer: mockServerReducer(state?.mockServer, action),
+      specConfig: specConfigReducer(state?.specConfig, action)
+    }
+  }
+)
+
+// Store
+const store = configureStore({
+    reducer: persistedReducer,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: {
+          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        },
+      }),
+})
+
+export const persistor = persistStore(store)
+
+export {setSchema, schemaReducer, store, setHeaders, setMockServerEnabled, setSpecConfig}
 
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

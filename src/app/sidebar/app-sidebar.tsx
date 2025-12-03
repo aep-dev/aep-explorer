@@ -2,17 +2,17 @@ import * as React from "react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
-  SidebarInput,
   SidebarRail,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { useAppDispatch, useAppSelector } from "@/hooks/store";
-import { selectHeaders, selectRootResources, setHeaders, selectMockServerEnabled, setMockServerEnabled } from "@/state/store";
-import { Label } from "../../components/ui/label";
-import { Checkbox } from "../../components/ui/checkbox";
+import { useAppSelector } from "@/hooks/store";
+import { selectRootResources } from "@/state/store";
 import { ResourceTypeList } from "@/components/resource_types/resource_type_list";
+import { Home } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // The AppSidebar. This fetches the list of root resources from the schema and displays them.
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -21,62 +21,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <HeadersInput />
-        <MockServerToggle />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link to="/">
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <ResourceTypeList resources={resources} />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
-  );
-}
-
-export function HeadersInput() {
-  const headers = useAppSelector(selectHeaders);
-  const dispatch = useAppDispatch();
-
-  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setHeaders(event.target.value));
-  };
-
-  return (
-    <form>
-      <SidebarGroup className="py-0">
-        <SidebarGroupContent className="relative">
-          <Label htmlFor="headers" className="sr-only">
-            Headers
-          </Label>
-          <SidebarInput
-            id="headers"
-            placeholder="Headers"
-            type="text"
-            value={headers!}
-            onChange={handleTextChange} />
-        </SidebarGroupContent>
-      </SidebarGroup>
-    </form>
-  );
-}
-
-export function MockServerToggle() {
-  const mockServerEnabled = useAppSelector(selectMockServerEnabled);
-  const dispatch = useAppDispatch();
-
-  const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setMockServerEnabled(event.target.checked));
-  };
-
-  return (
-    <SidebarGroup className="py-2">
-      <SidebarGroupContent>
-        <Checkbox
-          id="mock-server"
-          checked={mockServerEnabled}
-          onChange={handleToggle}
-          label="Use Mock Server"
-        />
-      </SidebarGroupContent>
-    </SidebarGroup>
   );
 }

@@ -7,8 +7,9 @@ import CreateForm from "./components/form/form";
 import InfoPage from "./app/explorer/info";
 import UpdatePage from "./app/explorer/update_form";
 
-import { selectResources, store } from './state/store';
+import { selectResources, store, persistor } from './state/store';
 import { Provider } from 'react-redux'
+import { PersistGate } from 'redux-persist/integration/react'
 import { useAppSelector } from "./hooks/store";
 
 function transformUrlForRouter(url: string): string {
@@ -52,7 +53,9 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
 function App() {
   return (
     <Provider store={store} >
+      <PersistGate loading={null} persistor={persistor}>
         <Routes />
+      </PersistGate>
     </Provider>
   );
 }
