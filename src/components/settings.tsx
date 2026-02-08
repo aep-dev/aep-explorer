@@ -67,7 +67,7 @@ export function Settings() {
           );
           dispatch(setSchema(new OpenAPI(apiClient)));
         } catch (error) {
-          toast({description: `Failed to auto-load OpenAPI document: ${error}`})
+          toast({ description: `Failed to auto-load OpenAPI document: ${error}` })
         }
       }
     };
@@ -86,7 +86,7 @@ export function Settings() {
       // Persist the spec config
       dispatch(setSpecConfig({ url: state.url, prefix: state.prefix || "" }));
     } catch (error) {
-      toast({description: `Failed to fetch OpenAPI document: ${error}`})
+      toast({ description: `Failed to fetch OpenAPI document: ${error}` })
     }
   };
 

@@ -1,4 +1,5 @@
 import { ResourceSchema } from "./state/openapi";
+import { RouteErrorBoundary } from "./components/error_boundary";
 import SpecSpecifierPage from "./app/spec_specifier/page";
 import { createBrowserRouter, RouteObject, RouterProvider } from "react-router-dom";
 import Layout from "./app/explorer/page";
@@ -20,6 +21,7 @@ function createRoutes(resources: ResourceSchema[]): RouteObject[] {
   const routes = [{
     path: "/",
     element: <Layout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         path: "/",
@@ -63,7 +65,7 @@ function App() {
 function Routes() {
   const resources = useAppSelector(selectResources);
   return (
-      <RouterProvider router={createBrowserRouter(createRoutes(resources))} />
+    <RouterProvider router={createBrowserRouter(createRoutes(resources))} />
   )
 }
 

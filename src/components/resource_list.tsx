@@ -7,6 +7,7 @@ import { ResourceInstance } from "@/state/fetch";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { ErrorBoundary } from "@/components/error_boundary";
 
 type ResourceListTableProps = {
     resource: ResourceSchema;
@@ -25,7 +26,7 @@ type ColumnDef = {
 
 export function ResourceListTable({ resource, resources, onRefresh }: ResourceListTableProps) {
     const navigate = useNavigate();
-    
+
     const dropDownMenuColumn: ColumnDef = {
         id: "actions",
         accessorKey: "actions",
@@ -65,7 +66,7 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
     };
 
     function createColumns(r: ResourceSchema | undefined) {
-        if(r) {
+        if (r) {
             const properties = r.properties();
             const columns: ColumnDef[] = properties
                 .sort((a, b) => {
@@ -73,11 +74,11 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
                     const priorityOrder = { path: 0, id: 1 };
                     const aPriority = priorityOrder[a.name as keyof typeof priorityOrder] ?? 2;
                     const bPriority = priorityOrder[b.name as keyof typeof priorityOrder] ?? 2;
-                    
+
                     if (aPriority !== bPriority) {
                         return aPriority - bPriority;
                     }
-                    
+
                     // Then sort alphabetically
                     return a.name.localeCompare(b.name);
                 })
@@ -101,10 +102,10 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
     async function deleteResource(r: ResourceInstance) {
         try {
             await r.delete();
-            toast({description: `Deleted ${r.path}`});
+            toast({ description: `Deleted ${r.path}` });
             onRefresh();
         } catch (error) {
-            toast({description: `Failed to delete resource: ${error instanceof Error ? error.message : String(error)}`});
+            toast({ description: `Failed to delete resource: ${error instanceof Error ? error.message : String(error)}` });
         }
     }
 
@@ -130,9 +131,11 @@ export function ResourceListTable({ resource, resources, onRefresh }: ResourceLi
     }
 
     return (
-        <DataTable
-            columns={createColumns(resource)}
-            data={resources}
-        />
+        <ErrorBoundary>
+            <DataTable
+                columns={createColumns(resource)}
+                data={resources}
+            />
+        </ErrorBoundary>
     );
-} 
+}

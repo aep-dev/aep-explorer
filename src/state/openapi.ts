@@ -1,5 +1,6 @@
 import { List, ResourceInstance, Create, Get } from './fetch';
 import { Resource, Schema, APIClient, CustomMethod } from '@aep_dev/aep-lib-ts';
+import { MissingParentError } from '../lib/errors';
 
 // Adapter class that wraps aep-lib-ts Resource with additional UI-specific functionality
 class ResourceSchema {
@@ -43,7 +44,7 @@ class ResourceSchema {
 
         if (!parentId) {
           const parentsMap = Object.fromEntries(this.parents);
-          throw new Error(`Missing required parent resource: ${paramName}. Available parents: ${JSON.stringify(parentsMap)}`);
+          throw new MissingParentError(paramName, parentsMap);
         }
       }
 

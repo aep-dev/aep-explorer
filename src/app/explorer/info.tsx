@@ -21,8 +21,8 @@ type InfoPageProps = {
 export default function InfoPage(props: InfoPageProps) {
     const params = useParams();
     const [state, setState] = useState<ResourceInstance | null>(null);
-    
-    const childResources = useAppSelector((globalState) => 
+
+    const childResources = useAppSelector((globalState) =>
         state ? selectChildResources(globalState, props.resource, (state.properties as ResourceProperties)?.path?.split('/').pop() || '') : []
     );
 
@@ -41,16 +41,16 @@ export default function InfoPage(props: InfoPageProps) {
     }, [params, props.resource])
 
     const properties = useMemo(() => {
-            if(state?.properties) {
-                const results = [];
-                for (const [key, value] of Object.entries(state.properties as ResourceProperties)) {
-                    results.push(<p key={key}>
-                        <b>{key}:</b> {value}
-                    </p>)
-                }
-                return results;
+        if (state?.properties) {
+            const results = [];
+            for (const [key, value] of Object.entries(state.properties as ResourceProperties)) {
+                results.push(<p key={key}>
+                    <b>{key}:</b> {value}
+                </p>)
             }
-            return <Spinner />
+            return results;
+        }
+        return <Spinner />
     }, [state]);
 
     const customMethods = useMemo(() => {

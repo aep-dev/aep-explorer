@@ -53,7 +53,7 @@ export default function ResourceListPage(props: ResourceListProps) {
                     </Button>
                 </div>
             </div>
-            <ResourceListTable 
+            <ResourceListTable
                 resource={props.resource}
                 resources={state.resources}
                 onRefresh={refreshList}
