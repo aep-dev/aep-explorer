@@ -1,37 +1,43 @@
-import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import { ResourceSchema } from "@/state/openapi";
 import { Link } from "react-router-dom";
 
 type ResourceTypeListProps = {
-    resources: ResourceSchema[];
+  resources: ResourceSchema[];
 };
 
 // ResourceTypeList component renders a list of resource types as links in the sidebar.
 export function ResourceTypeList(props: ResourceTypeListProps) {
-    return (
-        <SidebarGroup>
-            <SidebarGroupLabel>Resources</SidebarGroupLabel>
-            <SidebarMenu>
-                {props.resources.map((resource: ResourceSchema) => (
-                    <ResourceMenuItem resource={resource} />
-                ))}
-            </SidebarMenu>
-        </SidebarGroup>
-    );
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>Resources</SidebarGroupLabel>
+      <SidebarMenu>
+        {props.resources.map((resource: ResourceSchema) => (
+          <ResourceMenuItem resource={resource} />
+        ))}
+      </SidebarMenu>
+    </SidebarGroup>
+  );
 }
 
 type ResourceMenuItemProps = {
-    resource: ResourceSchema
+  resource: ResourceSchema;
 };
 
 function ResourceMenuItem(props: ResourceMenuItemProps) {
-    return (
-        <SidebarMenuItem key={props.resource.singular_name}>
-            <SidebarMenuButton asChild>
-                <Link to={`${props.resource.base_url()}`}>
-                    <span>{props.resource.plural_name}</span>
-                </Link>
-            </SidebarMenuButton>
-        </SidebarMenuItem>
-    )
+  return (
+    <SidebarMenuItem key={props.resource.singular_name}>
+      <SidebarMenuButton asChild>
+        <Link to={`${props.resource.base_url()}`}>
+          <span>{props.resource.plural_name}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
 }

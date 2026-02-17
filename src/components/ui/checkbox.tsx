@@ -1,9 +1,9 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 export interface CheckboxProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string
+  label?: string;
 }
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
@@ -17,7 +17,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "cursor-pointer",
-            className
+            className,
           )}
           ref={ref}
           {...props}
@@ -31,9 +31,9 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           </label>
         )}
       </div>
-    )
-  }
-)
-Checkbox.displayName = "Checkbox"
+    );
+  },
+);
+Checkbox.displayName = "Checkbox";
 
-export { Checkbox }
+export { Checkbox };

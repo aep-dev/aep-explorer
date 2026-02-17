@@ -840,12 +840,8 @@
         "x-aep-resource": {
           "singular": "book",
           "plural": "books",
-          "patterns": [
-            "publishers/{publisher}/books/{book}"
-          ],
-          "parents": [
-            "publisher"
-          ]
+          "patterns": ["publishers/{publisher}/books/{book}"],
+          "parents": ["publisher"]
         },
         "x-aep-field-numbers": {
           "0": "author",
@@ -855,11 +851,7 @@
           "3": "published",
           "4": "edition"
         },
-        "required": [
-          "isbn",
-          "price",
-          "published"
-        ]
+        "required": ["isbn", "price", "published"]
       },
       "book-edition": {
         "type": "object",
@@ -878,17 +870,13 @@
           "patterns": [
             "publishers/{publisher}/books/{book}/editions/{book-edition}"
           ],
-          "parents": [
-            "book"
-          ]
+          "parents": ["book"]
         },
         "x-aep-field-numbers": {
           "1": "displayname",
           "10018": "path"
         },
-        "required": [
-          "displayname"
-        ]
+        "required": ["displayname"]
       },
       "isbn": {
         "type": "object",
@@ -901,9 +889,7 @@
         "x-aep-resource": {
           "singular": "isbn",
           "plural": "isbns",
-          "patterns": [
-            "isbns/{isbn}"
-          ]
+          "patterns": ["isbns/{isbn}"]
         },
         "x-aep-field-numbers": {
           "10018": "path"
@@ -923,9 +909,7 @@
         "x-aep-resource": {
           "singular": "publisher",
           "plural": "publishers",
-          "patterns": [
-            "publishers/{publisher}"
-          ]
+          "patterns": ["publishers/{publisher}"]
         },
         "x-aep-field-numbers": {
           "1": "description",

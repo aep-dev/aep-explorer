@@ -44,11 +44,13 @@ class MockResourceStore {
   private extractResourceType(url: string): string {
     try {
       const urlObj = new URL(url);
-      const pathSegments = urlObj.pathname.split('/').filter(s => s.length > 0);
+      const pathSegments = urlObj.pathname
+        .split("/")
+        .filter((s) => s.length > 0);
       // Return the last segment as the resource type
-      return pathSegments[pathSegments.length - 1] || 'resource';
+      return pathSegments[pathSegments.length - 1] || "resource";
     } catch {
-      return 'resource';
+      return "resource";
     }
   }
 
@@ -59,12 +61,14 @@ class MockResourceStore {
   private extractParentPath(url: string): string {
     try {
       const urlObj = new URL(url);
-      const pathSegments = urlObj.pathname.split('/').filter(s => s.length > 0);
+      const pathSegments = urlObj.pathname
+        .split("/")
+        .filter((s) => s.length > 0);
       // Remove the last segment (resource type) to get parent path
       pathSegments.pop();
-      return pathSegments.join('/');
+      return pathSegments.join("/");
     } catch {
-      return '';
+      return "";
     }
   }
 
@@ -81,9 +85,13 @@ class MockResourceStore {
   /**
    * Build full path for a resource
    */
-  private buildResourcePath(parentPath: string, resourceType: string, id: string): string {
-    const parts = [parentPath, resourceType, id].filter(p => p.length > 0);
-    return parts.join('/');
+  private buildResourcePath(
+    parentPath: string,
+    resourceType: string,
+    id: string,
+  ): string {
+    const parts = [parentPath, resourceType, id].filter((p) => p.length > 0);
+    return parts.join("/");
   }
 
   /**
@@ -102,7 +110,10 @@ class MockResourceStore {
       const resourceParentPath = this.extractParentPathFromFullPath(path);
       const resourceTypeFromPath = this.extractResourceTypeFromFullPath(path);
 
-      if (resourceTypeFromPath === resourceType && resourceParentPath === parentPath) {
+      if (
+        resourceTypeFromPath === resourceType &&
+        resourceParentPath === parentPath
+      ) {
         results.push(resource);
       }
     }
@@ -125,7 +136,9 @@ class MockResourceStore {
 
       return resource;
     } catch (error) {
-      throw new Error(`Failed to get resource: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to get resource: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -141,7 +154,7 @@ class MockResourceStore {
     const resource: MockResource = {
       id,
       path,
-      ...contents
+      ...contents,
     };
 
     this.resources.set(path, resource);
@@ -166,13 +179,15 @@ class MockResourceStore {
         ...existing,
         ...contents,
         id: existing.id, // Preserve ID
-        path: existing.path // Preserve path
+        path: existing.path, // Preserve path
       };
 
       this.resources.set(path, updated);
       return updated;
     } catch (error) {
-      throw new Error(`Failed to update resource: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to update resource: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -190,7 +205,9 @@ class MockResourceStore {
 
       this.resources.delete(path);
     } catch (error) {
-      throw new Error(`Failed to delete resource: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to delete resource: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -199,11 +216,11 @@ class MockResourceStore {
    * e.g., "publishers/123/books/456" -> "publishers/123"
    */
   private extractParentPathFromFullPath(fullPath: string): string {
-    const segments = fullPath.split('/').filter(s => s.length > 0);
+    const segments = fullPath.split("/").filter((s) => s.length > 0);
     // Remove last two segments (resourceType and id)
     segments.pop(); // Remove id
     segments.pop(); // Remove resource type
-    return segments.join('/');
+    return segments.join("/");
   }
 
   /**
@@ -211,12 +228,12 @@ class MockResourceStore {
    * e.g., "publishers/123/books/456" -> "books"
    */
   private extractResourceTypeFromFullPath(fullPath: string): string {
-    const segments = fullPath.split('/').filter(s => s.length > 0);
+    const segments = fullPath.split("/").filter((s) => s.length > 0);
     // Resource type is second to last segment
     if (segments.length >= 2) {
       return segments[segments.length - 2];
     }
-    return '';
+    return "";
   }
 
   /**
