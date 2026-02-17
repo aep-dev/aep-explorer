@@ -14,5 +14,5 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./vitest-setup.js"], // change this to the file path you created
-  }
+  },
 });

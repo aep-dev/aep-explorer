@@ -26,7 +26,7 @@ import {
   selectHeaders,
   setHeaders,
   selectMockServerEnabled,
-  setMockServerEnabled
+  setMockServerEnabled,
 } from "@/state/store";
 import { useState, useEffect, useRef } from "react";
 import { fetchOpenAPI, APIClient } from "@aep_dev/aep-lib-ts";
@@ -57,17 +57,23 @@ export function Settings() {
   // Auto-reload schema if URL is persisted but schema is not loaded
   useEffect(() => {
     const autoLoadSchema = async () => {
-      if (specConfig.url && currentSchemaState === 'unset' && !hasAutoLoaded.current) {
+      if (
+        specConfig.url &&
+        currentSchemaState === "unset" &&
+        !hasAutoLoaded.current
+      ) {
         hasAutoLoaded.current = true;
         try {
           const openApiSpec = await fetchOpenAPI(specConfig.url);
           const apiClient = await APIClient.fromOpenAPI(
             openApiSpec,
-            specConfig.prefix || undefined
+            specConfig.prefix || undefined,
           );
           dispatch(setSchema(new OpenAPI(apiClient)));
         } catch (error) {
-          toast({ description: `Failed to auto-load OpenAPI document: ${error}` })
+          toast({
+            description: `Failed to auto-load OpenAPI document: ${error}`,
+          });
         }
       }
     };
@@ -80,13 +86,13 @@ export function Settings() {
       const openApiSpec = await fetchOpenAPI(state.url);
       const apiClient = await APIClient.fromOpenAPI(
         openApiSpec,
-        state.prefix || undefined
+        state.prefix || undefined,
       );
       dispatch(setSchema(new OpenAPI(apiClient)));
       // Persist the spec config
       dispatch(setSpecConfig({ url: state.url, prefix: state.prefix || "" }));
     } catch (error) {
-      toast({ description: `Failed to fetch OpenAPI document: ${error}` })
+      toast({ description: `Failed to fetch OpenAPI document: ${error}` });
     }
   };
 
@@ -130,11 +136,14 @@ export function Settings() {
               type="url"
               placeholder="https://example.com/openapi.json"
               value={state.url}
-              onChange={(event) => setState({ ...state, url: event.target.value })}
+              onChange={(event) =>
+                setState({ ...state, url: event.target.value })
+              }
               required
             />
             <p className="text-xs text-muted-foreground">
-              The URL should point to a valid OpenAPI 3.0+ document for an AEP-compliant API.
+              The URL should point to a valid OpenAPI 3.0+ document for an
+              AEP-compliant API.
             </p>
           </div>
           <div className="grid gap-2">
@@ -144,7 +153,9 @@ export function Settings() {
               type="text"
               placeholder="/api/v1"
               value={state.prefix || ""}
-              onChange={(event) => setState({ ...state, prefix: event.target.value })}
+              onChange={(event) =>
+                setState({ ...state, prefix: event.target.value })
+              }
             />
             <p className="text-xs text-muted-foreground">
               If your API uses a path prefix (e.g., /api/v1), specify it here.
@@ -160,7 +171,7 @@ export function Settings() {
               >
                 <span className="text-sm font-medium">Advanced Settings</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform ${advancedOpen ? 'rotate-180' : ''}`}
+                  className={`h-4 w-4 transition-transform ${advancedOpen ? "rotate-180" : ""}`}
                 />
               </Button>
             </CollapsibleTrigger>
@@ -183,7 +194,9 @@ export function Settings() {
                 <Checkbox
                   id="mock-server"
                   checked={mockServerEnabled}
-                  onCheckedChange={(checked) => dispatch(setMockServerEnabled(!!checked))}
+                  onCheckedChange={(checked) =>
+                    dispatch(setMockServerEnabled(!!checked))
+                  }
                 />
                 <Label
                   htmlFor="mock-server"
@@ -193,7 +206,8 @@ export function Settings() {
                 </Label>
               </div>
               <p className="text-xs text-muted-foreground -mt-2">
-                Enable to use an in-memory mock server instead of making real API calls
+                Enable to use an in-memory mock server instead of making real
+                API calls
               </p>
             </CollapsibleContent>
           </Collapsible>

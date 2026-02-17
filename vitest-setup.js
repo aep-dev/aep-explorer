@@ -1,6 +1,6 @@
 // vitest-setup.js (can be any file name)
 import { vi } from "vitest";
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 Object.defineProperty(window, "matchMedia", {
   writable: true,
@@ -14,5 +14,5 @@ Object.defineProperty(window, "matchMedia", {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
- })),
+  })),
 });

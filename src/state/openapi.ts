@@ -1,6 +1,6 @@
-import { List, ResourceInstance, Create, Get } from './fetch';
-import { Resource, Schema, APIClient, CustomMethod } from '@aep_dev/aep-lib-ts';
-import { MissingParentError } from '../lib/errors';
+import { List, ResourceInstance, Create, Get } from "./fetch";
+import { Resource, Schema, APIClient, CustomMethod } from "@aep_dev/aep-lib-ts";
+import { MissingParentError } from "../lib/errors";
 
 // Adapter class that wraps aep-lib-ts Resource with additional UI-specific functionality
 class ResourceSchema {
@@ -37,7 +37,7 @@ class ResourceSchema {
 
       if (!parentId) {
         // Try removing _id suffix if present
-        if (paramName.endsWith('_id')) {
+        if (paramName.endsWith("_id")) {
           const nameWithoutSuffix = paramName.slice(0, -3);
           parentId = this.parents.get(nameWithoutSuffix);
         }
@@ -62,14 +62,16 @@ class ResourceSchema {
 
   get(resourceId: string, headers: string = ""): Promise<ResourceInstance> {
     const baseUrl = this.base_url();
-    const url = this.substituteUrlParameters(`${this.server_url}${baseUrl}/${resourceId}`);
+    const url = this.substituteUrlParameters(
+      `${this.server_url}${baseUrl}/${resourceId}`,
+    );
     return Get(url, this, headers);
   }
 
   create(body: object, headers: string = ""): Promise {
     const baseUrl = this.base_url();
     let url = `${this.server_url}${baseUrl}`;
-    if (this.properties().find(prop => prop.name === 'id')) {
+    if (this.properties().find((prop) => prop.name === "id")) {
       url += `?id=${body.id}`;
     }
     url = this.substituteUrlParameters(url);
@@ -79,7 +81,9 @@ class ResourceSchema {
   base_url(): string {
     const pattern = this.resource.schema["x-aep-resource"]?.patterns?.[0];
     if (!pattern) {
-      throw new Error(`No pattern found for resource ${this.resource.singular}`);
+      throw new Error(
+        `No pattern found for resource ${this.resource.singular}`,
+      );
     }
     const subset = pattern.substring(0, pattern.lastIndexOf("/"));
     if (subset[0] != "/") {
@@ -91,8 +95,12 @@ class ResourceSchema {
   properties(): PropertySchema[] {
     const properties: PropertySchema[] = [];
     if (this.resource.schema.properties) {
-      for (const [name, schema] of Object.entries(this.resource.schema.properties)) {
-        properties.push(new PropertySchema(name, schema.type || 'object', schema));
+      for (const [name, schema] of Object.entries(
+        this.resource.schema.properties,
+      )) {
+        properties.push(
+          new PropertySchema(name, schema.type || "object", schema),
+        );
       }
     }
     return properties;
@@ -103,7 +111,7 @@ class ResourceSchema {
   }
 
   parentResources(): string[] {
-    return this.resource.parents.map(p => p.singular);
+    return this.resource.parents.map((p) => p.singular);
   }
 
   customMethods(): CustomMethod[] {
@@ -112,9 +120,9 @@ class ResourceSchema {
 }
 
 class PropertySchema {
-  name: string
-  type: string
-  schema: Schema
+  name: string;
+  type: string;
+  schema: Schema;
 
   constructor(name: string, type: string, schema: Schema) {
     this.name = name;
@@ -123,10 +131,12 @@ class PropertySchema {
   }
 
   properties(): PropertySchema[] {
-    if (this.type === 'object' && this.schema?.properties) {
+    if (this.type === "object" && this.schema?.properties) {
       const properties: PropertySchema[] = [];
       for (const [name, schema] of Object.entries(this.schema.properties)) {
-        properties.push(new PropertySchema(name, schema.type || 'object', schema));
+        properties.push(
+          new PropertySchema(name, schema.type || "object", schema),
+        );
       }
       return properties;
     }
@@ -134,7 +144,7 @@ class PropertySchema {
   }
 
   required(): string[] {
-    if (this.type === 'object' && this.schema?.required) {
+    if (this.type === "object" && this.schema?.required) {
       return this.schema.required;
     }
     return [];
@@ -143,13 +153,19 @@ class PropertySchema {
 
 // Adapter class that wraps aep-lib-ts APIClient with UI-specific functionality
 class OpenAPI {
-  private apiClient: { resources: () => Record<string, Resource>; serverUrl: () => string } | null = null;
-  private serverUrl: string = '';
+  private apiClient: {
+    resources: () => Record<string, Resource>;
+    serverUrl: () => string;
+  } | null = null;
+  private serverUrl: string = "";
   private _resources: ResourceSchema[] | null = null;
 
   constructor(
-    apiClient: { resources: () => Record<string, Resource>; serverUrl: () => string } | null = null,
-    serverUrl?: string
+    apiClient: {
+      resources: () => Record<string, Resource>;
+      serverUrl: () => string;
+    } | null = null,
+    serverUrl?: string,
   ) {
     this.apiClient = apiClient;
     if (serverUrl) {
@@ -180,7 +196,9 @@ class OpenAPI {
   }
 
   parentResources(): ResourceSchema[] {
-    return this.resources().filter((resource) => resource.parentResources().length == 0);
+    return this.resources().filter(
+      (resource) => resource.parentResources().length == 0,
+    );
   }
 
   resourceForName(plural: string): ResourceSchema {
@@ -205,7 +223,7 @@ class OpenAPI {
       // Check if all parents in the resource's parents array are valid
       const allParentsValid =
         parents.length === validParents.size &&
-        parents.every(parent => validParents.has(parent));
+        parents.every((parent) => validParents.has(parent));
 
       if (allParentsValid) {
         // Copy parent relationships from the parent resource
