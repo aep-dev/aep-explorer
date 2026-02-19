@@ -68,11 +68,11 @@ class ResourceSchema {
     return Get(url, this, headers);
   }
 
-  create(body: object, headers: string = ""): Promise {
+  create(body: Record<string, unknown>, headers: string = ""): Promise<void> {
     const baseUrl = this.base_url();
     let url = `${this.server_url}${baseUrl}`;
     if (this.properties().find((prop) => prop.name === "id")) {
-      url += `?id=${body.id}`;
+      url += `?id=${(body as Record<string, unknown>).id}`;
     }
     url = this.substituteUrlParameters(url);
     return Create(url, body, headers);
@@ -124,7 +124,7 @@ class PropertySchema {
   type: string;
   schema: Schema;
 
-  constructor(name: string, type: string, schema: Schema) {
+  constructor(name: string, type: string, schema: Schema = {}) {
     this.name = name;
     this.type = type;
     this.schema = schema;
@@ -148,6 +148,10 @@ class PropertySchema {
       return this.schema.required;
     }
     return [];
+  }
+
+  get readOnly(): boolean {
+    return !!(this.schema as Record<string, unknown>)?.readOnly;
   }
 }
 

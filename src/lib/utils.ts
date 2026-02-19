@@ -40,7 +40,7 @@ export function createValidationSchema(
   const schemaObject: Record<string, z.ZodTypeAny> = {};
 
   for (const property of properties) {
-    if (!property) continue; // Skip null properties
+    if (!property || property.readOnly) continue; // Skip null or readOnly properties
     let fieldSchema: z.ZodTypeAny;
     const isRequired = requiredFields.includes(property.name);
 
@@ -105,6 +105,7 @@ export function createValidationSchemaFromRawSchema(
     string,
     Record<string, unknown>,
   ][]) {
+    if (propSchema.readOnly) continue; // Skip readOnly properties
     const isFieldRequired = required.includes(name);
     let fieldSchema: z.ZodTypeAny;
 

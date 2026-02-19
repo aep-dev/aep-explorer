@@ -32,7 +32,7 @@ type FormProps = {
   onError: (error: unknown) => void;
   // Current resource state used to fill in the form's default values for updating (optional)
   resourceInstance?: ResourceInstance;
-  onSubmitOperation: (value: Record<string, unknown>) => Promise<void>;
+  onSubmitOperation: (value: Record<string, unknown>) => Promise<unknown>;
 };
 
 // Form is responsible for rendering a form based on the resource schema.
@@ -140,6 +140,10 @@ export function Form(props: FormProps) {
     (p: PropertySchema, parentPath: string = ""): React.ReactNode => {
       if (!p) {
         return <Spinner key="loading" />;
+      }
+
+      if (p.readOnly) {
+        return null;
       }
 
       const fieldPath = parentPath ? `${parentPath}.${p.name}` : p.name;

@@ -1,11 +1,13 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, type Mock } from "vitest";
 import { BrowserRouter } from "react-router-dom";
 import { Form } from "./form";
 import { ResourceSchema, PropertySchema } from "@/state/openapi";
+import { Schema } from "@aep_dev/aep-lib-ts";
 import { ResourceInstance } from "@/state/fetch";
 import fs from "fs";
 import { parseOpenAPI } from "@/state/openapi";
+import "@testing-library/jest-dom/vitest";
 
 // Mock ResourceSchema for testing different property types
 const createMockResourceSchema = (
@@ -1204,6 +1206,51 @@ describe("Form", () => {
       await waitFor(() => {
         expect(screen.getByLabelText("active")).toBeChecked();
       });
+    });
+  });
+
+  describe("ReadOnly properties", () => {
+    it("does not render readOnly properties in the form", () => {
+      const properties = [
+        new PropertySchema("id", "string", {
+          readOnly: true,
+        } as unknown as Schema),
+        new PropertySchema("name", "string"),
+      ];
+      const resource = createMockResourceSchema(properties);
+      renderForm(resource);
+
+      expect(screen.queryByLabelText("id")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("name")).toBeInTheDocument();
+    });
+
+    it("excludes readOnly properties from the validation schema and submission", async () => {
+      const properties = [
+        new PropertySchema("id", "string", {
+          readOnly: true,
+        } as unknown as Schema),
+        new PropertySchema("name", "string"),
+      ];
+      const resource = createMockResourceSchema(properties);
+      renderForm(resource);
+
+      fireEvent.change(screen.getByLabelText("name"), {
+        target: { value: "Test Name" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+      await waitFor(() => {
+        expect(resource.create).toHaveBeenCalledWith(
+          {
+            name: "Test Name",
+          },
+          "",
+        );
+      });
+
+      // Ensure id was NOT included
+      const call = (resource.create as Mock).mock.calls[0];
+      expect(call[0]).not.toHaveProperty("id");
     });
   });
 });
