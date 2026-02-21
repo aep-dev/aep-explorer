@@ -115,12 +115,14 @@ class ResourceInstance {
 }
 
 function getHeaders(headers: string): object {
+  const defaultHeaders = new Map();
+  defaultHeaders.set("Content-Type", "application/json");
   if (!headers) {
-    return new Map();
+    return defaultHeaders;
   }
 
   console.log("headers " + headers);
-  const headersMap = new Map();
+  const headersMap = new Map(defaultHeaders);
   const headersArray = headers.split(",");
   headersArray.forEach((header) => {
     const [key, value] = header.split(":");

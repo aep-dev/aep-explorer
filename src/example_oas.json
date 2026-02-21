@@ -151,6 +151,15 @@
       "post": {
         "description": "Create method for publisher",
         "operationId": "CreatePublisher",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response",

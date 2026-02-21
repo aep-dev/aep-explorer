@@ -26,6 +26,10 @@ class ResourceSchema {
     return this.resource.schema;
   }
 
+  get supportsUserSettableCreate(): boolean {
+    return this.resource.createMethod?.supportsUserSettableCreate ?? false;
+  }
+
   public substituteUrlParameters(url: string): string {
     const paramRegex = /\{([^}]+)\}/g;
     let match;
@@ -68,11 +72,15 @@ class ResourceSchema {
     return Get(url, this, headers);
   }
 
-  create(body: Record<string, unknown>, headers: string = ""): Promise<void> {
+  create(
+    body: Record<string, unknown>,
+    id: string = "",
+    headers: string = "",
+  ): Promise<void> {
     const baseUrl = this.base_url();
     let url = `${this.server_url}${baseUrl}`;
-    if (this.properties().find((prop) => prop.name === "id")) {
-      url += `?id=${(body as Record<string, unknown>).id}`;
+    if (id) {
+      url += `?id=${id}`;
     }
     url = this.substituteUrlParameters(url);
     return Create(url, body, headers);
