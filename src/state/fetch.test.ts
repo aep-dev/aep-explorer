@@ -66,7 +66,10 @@ describe("fetch.ts", () => {
 
       expect(mockFetch).toHaveBeenCalledWith("http://localhost:8080/test/123", {
         method: "DELETE",
-        headers: new Map([["Authorization", "Bearer token"]]),
+        headers: new Map([
+          ["Content-Type", "application/json"],
+          ["Authorization", "Bearer token"],
+        ]),
       });
     });
 
@@ -89,7 +92,10 @@ describe("fetch.ts", () => {
 
       expect(mockFetch).toHaveBeenCalledWith("http://localhost:8080/test/123", {
         method: "PATCH",
-        headers: new Map([["Authorization", "Bearer token"]]),
+        headers: new Map([
+          ["Content-Type", "application/json"],
+          ["Authorization", "Bearer token"],
+        ]),
         body: JSON.stringify(updateData),
       });
     });
@@ -273,7 +279,7 @@ describe("fetch.ts", () => {
 
       expect(mockFetch).toHaveBeenCalledWith("http://test.com/api", {
         method: "POST",
-        headers: new Map(),
+        headers: new Map([["Content-Type", "application/json"]]),
         body: JSON.stringify(createData),
       });
     });
@@ -323,7 +329,7 @@ describe("fetch.ts", () => {
 
       expect(mockFetch).toHaveBeenCalledWith("http://test.com/api/1", {
         method: "DELETE",
-        headers: new Map(),
+        headers: new Map([["Content-Type", "application/json"]]),
       });
     });
 
@@ -357,7 +363,7 @@ describe("fetch.ts", () => {
 
       expect(mockFetch).toHaveBeenCalledWith("http://test.com/api/1", {
         method: "PATCH",
-        headers: new Map(),
+        headers: new Map([["Content-Type", "application/json"]]),
         body: JSON.stringify(patchData),
       });
     });
@@ -485,7 +491,7 @@ describe("fetch.ts", () => {
       await List("http://test.com/api", schema, "");
 
       expect(mockFetch).toHaveBeenCalledWith("http://test.com/api", {
-        headers: new Map(),
+        headers: new Map([["Content-Type", "application/json"]]),
       });
     });
   });

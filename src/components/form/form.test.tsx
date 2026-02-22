@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach, type Mock } from "vitest";
 import { BrowserRouter } from "react-router-dom";
-import { Form } from "./form";
+import { Form, AdditionalField } from "./form";
 import { ResourceSchema, PropertySchema } from "@/state/openapi";
 import { Schema } from "@aep_dev/aep-lib-ts";
 import { ResourceInstance } from "@/state/fetch";
@@ -40,11 +40,24 @@ describe("Form", () => {
     headers = "",
     parentParams = new Map<string, string>(),
     resourceInstance?: ResourceInstance,
-    onSubmitOperation?: (value: Record<string, unknown>) => Promise<void>,
+    onSubmitOperation?: (
+      value: Record<string, unknown>,
+      additionalFieldsValues: Record<string, unknown>,
+    ) => Promise<void>,
+    additionalFields?: AdditionalField[],
   ) => {
     const defaultOnSubmitOperation =
       onSubmitOperation ||
-      ((value: Record<string, unknown>) => resource.create(value, headers));
+      ((
+        value: Record<string, unknown>,
+        additionalFieldsValues: Record<string, unknown>,
+      ) => {
+        let id: string | undefined = undefined;
+        if (additionalFieldsValues.id) {
+          id = additionalFieldsValues.id as string;
+        }
+        return resource.create(value, id, headers);
+      });
 
     return render(
       <BrowserRouter>
@@ -56,6 +69,7 @@ describe("Form", () => {
           onError={mockOnError}
           resourceInstance={resourceInstance}
           onSubmitOperation={defaultOnSubmitOperation}
+          additionalFields={additionalFields}
         />
       </BrowserRouter>,
     );
@@ -179,6 +193,7 @@ describe("Form", () => {
           age: 25,
           active: true,
         },
+        undefined,
         "",
       );
     });
@@ -306,6 +321,7 @@ describe("Form", () => {
         {
           requiredField: "Required Value",
         },
+        undefined,
         "",
       );
     });
@@ -359,6 +375,7 @@ describe("Form", () => {
         {
           requiredName: "Test Name",
         },
+        undefined,
         "",
       );
     });
@@ -385,6 +402,7 @@ describe("Form", () => {
         {
           requiredName: "Test Name",
         },
+        undefined,
         "",
       );
     });
@@ -593,6 +611,7 @@ describe("Form", () => {
               city: "Springfield",
             },
           },
+          undefined,
           "",
         );
       });
@@ -727,7 +746,10 @@ describe("Form", () => {
       fireEvent.click(screen.getByRole("button", { name: "Submit" }));
 
       await waitFor(() => {
-        expect(mockUpdateOperation).toHaveBeenCalledWith({ name: "New Name" });
+        expect(mockUpdateOperation).toHaveBeenCalledWith(
+          { name: "New Name" },
+          {},
+        );
       });
 
       expect(mockOnSuccess).toHaveBeenCalled();
@@ -749,7 +771,10 @@ describe("Form", () => {
       fireEvent.click(screen.getByRole("button", { name: "Submit" }));
 
       await waitFor(() => {
-        expect(mockCreateOperation).toHaveBeenCalledWith({ name: "Test Name" });
+        expect(mockCreateOperation).toHaveBeenCalledWith(
+          { name: "Test Name" },
+          {},
+        );
       });
 
       expect(mockOnSuccess).toHaveBeenCalled();
@@ -816,10 +841,13 @@ describe("Form", () => {
       fireEvent.click(screen.getByRole("button", { name: "Submit" }));
 
       await waitFor(() => {
-        expect(mockUpdateOperation).toHaveBeenCalledWith({
-          name: "Modified Name",
-          age: 30,
-        });
+        expect(mockUpdateOperation).toHaveBeenCalledWith(
+          {
+            name: "Modified Name",
+            age: 30,
+          },
+          {},
+        );
       });
     });
 
@@ -1049,6 +1077,7 @@ describe("Form", () => {
             name: "Jane Doe",
             age: 30,
           }),
+          undefined,
           "",
         );
       });
@@ -1244,6 +1273,7 @@ describe("Form", () => {
           {
             name: "Test Name",
           },
+          undefined,
           "",
         );
       });
@@ -1251,6 +1281,117 @@ describe("Form", () => {
       // Ensure id was NOT included
       const call = (resource.create as Mock).mock.calls[0];
       expect(call[0]).not.toHaveProperty("id");
+    });
+  });
+
+  describe("Additional fields", () => {
+    it("renders additional fields when provided", () => {
+      const properties = [new PropertySchema("name", "string")];
+      const resource = createMockResourceSchema(properties);
+      const additionalFields: AdditionalField[] = [
+        { name: "id", type: "string" },
+      ];
+      renderForm(
+        resource,
+        "",
+        new Map(),
+        undefined,
+        undefined,
+        additionalFields,
+      );
+
+      expect(screen.getByLabelText("id")).toBeInTheDocument();
+      expect(screen.getByLabelText("name")).toBeInTheDocument();
+    });
+
+    it("does not render additional fields when not provided", () => {
+      const properties = [new PropertySchema("name", "string")];
+      const resource = createMockResourceSchema(properties);
+      renderForm(resource);
+
+      expect(screen.queryByLabelText("id")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("name")).toBeInTheDocument();
+    });
+
+    it("includes additional field values in submission", async () => {
+      const properties = [new PropertySchema("name", "string")];
+      const resource = createMockResourceSchema(properties);
+      const additionalFields: AdditionalField[] = [
+        { name: "id", type: "string" },
+      ];
+      renderForm(
+        resource,
+        "",
+        new Map(),
+        undefined,
+        undefined,
+        additionalFields,
+      );
+
+      fireEvent.change(screen.getByLabelText("id"), {
+        target: { value: "my-resource-id" },
+      });
+      fireEvent.change(screen.getByLabelText("name"), {
+        target: { value: "Test Name" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+      await waitFor(() => {
+        expect(resource.create).toHaveBeenCalledWith(
+          {
+            name: "Test Name",
+          },
+          "my-resource-id",
+          "",
+        );
+      });
+    });
+
+    it("allows submission with empty optional additional field", async () => {
+      const properties = [new PropertySchema("name", "string")];
+      const resource = createMockResourceSchema(properties);
+      const additionalFields: AdditionalField[] = [
+        { name: "id", type: "string" },
+      ];
+      renderForm(
+        resource,
+        "",
+        new Map(),
+        undefined,
+        undefined,
+        additionalFields,
+      );
+
+      fireEvent.change(screen.getByLabelText("name"), {
+        target: { value: "Test Name" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+      await waitFor(() => {
+        expect(resource.create).toHaveBeenCalledWith(
+          {
+            name: "Test Name",
+          },
+          undefined,
+          "",
+        );
+      });
+    });
+
+    it("works with real OpenAPI schema that supports user-settable id", async () => {
+      const fileContents = fs.readFileSync("src/example_oas.json", "utf8");
+      const openAPI = await parseOpenAPI(fileContents);
+      const publisherResource = openAPI.resourceForName("publishers");
+
+      expect(publisherResource.supportsUserSettableCreate).toBe(true);
+    });
+
+    it("returns false for supportsUserSettableCreate when no id param", async () => {
+      const fileContents = fs.readFileSync("src/example_oas.json", "utf8");
+      const openAPI = await parseOpenAPI(fileContents);
+      const bookResource = openAPI.resourceForName("books");
+
+      expect(bookResource.supportsUserSettableCreate).toBe(false);
     });
   });
 });

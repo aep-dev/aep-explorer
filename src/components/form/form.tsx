@@ -24,15 +24,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { JsonEditor } from "json-edit-react";
 import { createValidationSchema } from "@/lib/utils";
 
+export type AdditionalField = {
+  name: string;
+  type: string;
+  required?: boolean;
+};
+
 type FormProps = {
   resource: ResourceSchema;
   parentParams: Map<string, string>;
   headers: string;
   onSuccess: () => void;
   onError: (error: unknown) => void;
-  // Current resource state used to fill in the form's default values for updating (optional)
   resourceInstance?: ResourceInstance;
-  onSubmitOperation: (value: Record<string, unknown>) => Promise<unknown>;
+  onSubmitOperation: (
+    value: Record<string, unknown>,
+    additionalFieldsValues: Record<string, unknown>,
+  ) => Promise<unknown>;
+  additionalFields?: AdditionalField[];
 };
 
 // Form is responsible for rendering a form based on the resource schema.
@@ -44,8 +53,25 @@ export function Form(props: FormProps) {
   const validationSchema = useMemo(() => {
     const properties = props.resource.properties();
     const requiredFields = props.resource.required();
-    return createValidationSchema(properties, requiredFields);
-  }, [props.resource]);
+    const baseSchema = createValidationSchema(properties, requiredFields);
+
+    if (!props.additionalFields?.length) return baseSchema;
+
+    const additionalSchemaObj: Record<string, z.ZodTypeAny> = {};
+    for (const field of props.additionalFields) {
+      const fieldSchema =
+        field.type === "string"
+          ? field.required
+            ? z.string().min(1, { message: `${field.name} is required` })
+            : z.string().optional()
+          : z.string().optional();
+      additionalSchemaObj[field.name] = fieldSchema;
+    }
+
+    return (baseSchema as z.ZodObject<Record<string, z.ZodTypeAny>>).extend(
+      additionalSchemaObj,
+    );
+  }, [props.resource, props.additionalFields]);
 
   const defaultValues = useMemo(() => {
     return props.resourceInstance?.properties || {};
@@ -92,10 +118,17 @@ export function Form(props: FormProps) {
   };
 
   const onSubmit = (value: Record<string, unknown>) => {
+    const additionalFieldValues: Record<string, unknown> = {};
+    if (props.additionalFields) {
+      for (const field of props.additionalFields) {
+        additionalFieldValues[field.name] = value[field.name];
+        delete value[field.name];
+      }
+    }
     // Value is the properly formed JSON body.
     // Just need to submit it and call the appropriate callback.
     props
-      .onSubmitOperation(value)
+      .onSubmitOperation(value, additionalFieldValues)
       .then(() => {
         props.onSuccess();
       })
@@ -204,6 +237,14 @@ export function Form(props: FormProps) {
     [form.control],
   );
 
+  const additionalFieldElements = useMemo(() => {
+    if (!props.additionalFields?.length) return null;
+    return props.additionalFields.map((af) => {
+      const p = new PropertySchema(af.name, af.type);
+      return renderField(p);
+    });
+  }, [props.additionalFields, renderField]);
+
   const formBuilder = useMemo(() => {
     return props.resource.properties().map((p) => renderField(p));
   }, [props.resource, renderField]);
@@ -235,7 +276,10 @@ export function Form(props: FormProps) {
 
         {mode === "form" ? (
           <form>
-            <FieldGroup>{formBuilder}</FieldGroup>
+            <FieldGroup>
+              {additionalFieldElements}
+              {formBuilder}
+            </FieldGroup>
           </form>
         ) : (
           <div className="space-y-2">
@@ -298,7 +342,18 @@ export default function CreateForm(props: { resource: ResourceSchema }) {
       headers={headers}
       onSuccess={handleSuccess}
       onError={handleError}
-      onSubmitOperation={(value) => props.resource.create(value, headers)}
+      onSubmitOperation={(value, additionalFieldsValues) => {
+        let id: string | undefined = undefined;
+        if (additionalFieldsValues.id) {
+          id = additionalFieldsValues.id as string;
+        }
+        return props.resource.create(value, id, headers);
+      }}
+      additionalFields={
+        props.resource.supportsUserSettableCreate
+          ? [{ name: "id", type: "string" }]
+          : undefined
+      }
     />
   );
 }
