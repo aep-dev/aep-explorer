@@ -347,7 +347,7 @@ export default function CreateForm(props: { resource: ResourceSchema }) {
         if (additionalFieldsValues.id) {
           id = additionalFieldsValues.id as string;
         }
-        return props.resource.create(value, id, headers);
+        return props.resource.create(value, id, parentParams, headers);
       }}
       additionalFields={
         props.resource.supportsUserSettableCreate

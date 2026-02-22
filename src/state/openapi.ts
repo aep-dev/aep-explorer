@@ -30,24 +30,30 @@ class ResourceSchema {
     return this.resource.createMethod?.supportsUserSettableCreate ?? false;
   }
 
-  public substituteUrlParameters(url: string): string {
+  public substituteUrlParameters(
+    url: string,
+    parentIds: Map<string, string>,
+  ): string {
     const paramRegex = /\{([^}]+)\}/g;
     let match;
     let resultUrl = url;
+    const parentsMap = Object.fromEntries(this.parents);
 
     while ((match = paramRegex.exec(url)) !== null) {
       const paramName = match[1];
-      let parentId = this.parents.get(paramName);
+      let parentId = parentIds.get(paramName);
+      if (parentId === "{" + paramName + "}") {
+        throw new MissingParentError(paramName, parentsMap);
+      }
 
       if (!parentId) {
         // Try removing _id suffix if present
         if (paramName.endsWith("_id")) {
           const nameWithoutSuffix = paramName.slice(0, -3);
-          parentId = this.parents.get(nameWithoutSuffix);
+          parentId = parentIds.get(nameWithoutSuffix);
         }
 
         if (!parentId) {
-          const parentsMap = Object.fromEntries(this.parents);
           throw new MissingParentError(paramName, parentsMap);
         }
       }
@@ -58,16 +64,27 @@ class ResourceSchema {
     return resultUrl;
   }
 
-  list(headers: string = ""): Promise<ResourceInstance[]> {
+  list(
+    parentIds: Map<string, string>,
+    headers: string = "",
+  ): Promise<ResourceInstance[]> {
     const baseUrl = this.base_url();
-    const url = this.substituteUrlParameters(`${this.server_url}${baseUrl}`);
+    const url = this.substituteUrlParameters(
+      `${this.server_url}${baseUrl}`,
+      parentIds,
+    );
     return List(url, this, headers);
   }
 
-  get(resourceId: string, headers: string = ""): Promise<ResourceInstance> {
+  get(
+    resourceId: string,
+    parentIds: Map<string, string>,
+    headers: string = "",
+  ): Promise<ResourceInstance> {
     const baseUrl = this.base_url();
     const url = this.substituteUrlParameters(
       `${this.server_url}${baseUrl}/${resourceId}`,
+      parentIds,
     );
     return Get(url, this, headers);
   }
@@ -75,6 +92,7 @@ class ResourceSchema {
   create(
     body: Record<string, unknown>,
     id: string = "",
+    parentIds: Map<string, string>,
     headers: string = "",
   ): Promise<void> {
     const baseUrl = this.base_url();
@@ -82,7 +100,7 @@ class ResourceSchema {
     if (id) {
       url += `?id=${id}`;
     }
-    url = this.substituteUrlParameters(url);
+    url = this.substituteUrlParameters(url, parentIds);
     return Create(url, body, headers);
   }
 

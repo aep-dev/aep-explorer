@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 
 interface ErrorDisplayProps {
   error: Error | unknown;
-  reset: () => void;
+  reset: (path?: string) => void;
 }
 
 export function ErrorDisplay({ error, reset }: ErrorDisplayProps) {
@@ -23,7 +23,7 @@ export function ErrorDisplay({ error, reset }: ErrorDisplayProps) {
     (typeof error === "string" ? error : "Something went wrong.");
   let title = "An error occurred";
   let description = errorMessage;
-  let action = <Button onClick={reset}>Go Home</Button>;
+  let action = <Button onClick={() => reset()}>Go Home</Button>;
 
   const handler = findErrorHandler(error);
   if (handler) {
@@ -71,9 +71,9 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  private handleClose = () => {
+  private handleClose = (path?: string) => {
     this.setState({ hasError: false, error: null });
-    window.location.href = "/";
+    window.location.href = path || "/";
   };
 
   public render() {
@@ -89,8 +89,8 @@ export function RouteErrorBoundary() {
   const error = useRouteError();
   const navigate = useNavigate();
 
-  const handleClose = () => {
-    navigate("/");
+  const handleClose = (path?: string) => {
+    navigate(path || "/");
   };
 
   return <ErrorDisplay error={error} reset={handleClose} />;
