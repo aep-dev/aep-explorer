@@ -32,9 +32,9 @@ export default function UpdatePage(props: UpdatePageProps) {
 
   useEffect(() => {
     props.schema
-      .get(resourceId!)
+      .get(resourceId as string, parentParams, headers)
       .then((instance) => setResourceInstance(instance));
-  }, [resourceId, props.schema]);
+  }, [resourceId, props.schema, parentParams, headers]);
 
   const handleSuccess = () => {
     toast({ description: `Updated ${resourceInstance?.properties["path"]}` });

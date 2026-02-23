@@ -56,7 +56,7 @@ describe("Form", () => {
         if (additionalFieldsValues.id) {
           id = additionalFieldsValues.id as string;
         }
-        return resource.create(value, id, headers);
+        return resource.create(value, id, parentParams, headers);
       });
 
     return render(
@@ -194,6 +194,7 @@ describe("Form", () => {
           active: true,
         },
         undefined,
+        new Map(),
         "",
       );
     });
@@ -322,6 +323,7 @@ describe("Form", () => {
           requiredField: "Required Value",
         },
         undefined,
+        new Map(),
         "",
       );
     });
@@ -376,6 +378,7 @@ describe("Form", () => {
           requiredName: "Test Name",
         },
         undefined,
+        new Map(),
         "",
       );
     });
@@ -403,6 +406,7 @@ describe("Form", () => {
           requiredName: "Test Name",
         },
         undefined,
+        new Map(),
         "",
       );
     });
@@ -612,6 +616,7 @@ describe("Form", () => {
             },
           },
           undefined,
+          new Map(),
           "",
         );
       });
@@ -1078,6 +1083,7 @@ describe("Form", () => {
             age: 30,
           }),
           undefined,
+          new Map(),
           "",
         );
       });
@@ -1274,6 +1280,7 @@ describe("Form", () => {
             name: "Test Name",
           },
           undefined,
+          new Map(),
           "",
         );
       });
@@ -1342,6 +1349,7 @@ describe("Form", () => {
             name: "Test Name",
           },
           "my-resource-id",
+          new Map(),
           "",
         );
       });
@@ -1373,6 +1381,7 @@ describe("Form", () => {
             name: "Test Name",
           },
           undefined,
+          new Map(),
           "",
         );
       });

@@ -5,7 +5,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ResourceInstance } from "@/state/fetch";
 import { ResourceSchema } from "@/state/openapi";
 import { useAppSelector } from "@/hooks/store";
-import { selectChildResources } from "@/state/store";
+import { selectChildResources, selectHeaders } from "@/state/store";
 import ResourceListPage from "./resource_list";
 import { CustomMethodComponent } from "@/components/custom_method";
 
@@ -33,21 +33,27 @@ export default function InfoPage(props: InfoPageProps) {
       : [],
   );
 
-  useEffect(() => {
-    // Set parent parameters from URL params, excluding resourceId
-    const parentParams = new Map<string, string>();
+  const headers = useAppSelector(selectHeaders);
+
+  const parentParams = useMemo(() => {
+    const parentMap = new Map<string, string>();
     for (const [key, value] of Object.entries(params)) {
       if (key !== "resourceId" && value) {
-        parentParams.set(key, value);
+        parentMap.set(key, value);
       }
     }
+    return parentMap;
+  }, [params]);
+
+  useEffect(() => {
+    // Set parent parameters on the resource for other uses
     props.resource.parents = parentParams;
 
     // Fetch the resource instance
     props.resource
-      .get(params["resourceId"]!)
+      .get(params["resourceId"] as string, parentParams, headers)
       .then((instance) => setState(instance));
-  }, [params, props.resource]);
+  }, [params, props.resource, parentParams, headers]);
 
   const properties = useMemo(() => {
     if (state?.properties) {

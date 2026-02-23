@@ -24,6 +24,7 @@ import { ErrorBoundary } from "@/components/error_boundary";
 type ResourceListTableProps = {
   resource: ResourceSchema;
   resources: ResourceInstance[];
+  parentParams: Map<string, string>;
   onRefresh: () => void;
 };
 
@@ -39,6 +40,7 @@ type ColumnDef = {
 export function ResourceListTable({
   resource,
   resources,
+  parentParams,
   onRefresh,
 }: ResourceListTableProps) {
   const navigate = useNavigate();
@@ -151,8 +153,10 @@ export function ResourceListTable({
           <Button
             onClick={() =>
               navigate(
-                resource.substituteUrlParameters(resource.base_url()) +
-                  "/_create",
+                resource.substituteUrlParameters(
+                  resource.base_url(),
+                  parentParams,
+                ) + "/_create",
               )
             }
           >

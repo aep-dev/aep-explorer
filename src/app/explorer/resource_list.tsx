@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw } from "lucide-react";
 import { ResourceSchema } from "@/state/openapi";
@@ -18,21 +18,32 @@ type ResourceListProps = {
 
 export default function ResourceListPage(props: ResourceListProps) {
   const navigate = useNavigate();
+  const params = useParams();
   const [state, setState] = useState<ResourceListState>({
     resources: [],
   });
 
   const headers = useAppSelector(selectHeaders);
 
+  const parentParams = useMemo(() => {
+    const parentMap = new Map<string, string>();
+    for (const [key, value] of Object.entries(params)) {
+      if (key !== "resourceId" && value) {
+        parentMap.set(key, value);
+      }
+    }
+    return parentMap;
+  }, [params]);
+
   const refreshList = useCallback(() => {
-    props.resource.list(headers).then((resources) => {
+    props.resource.list(parentParams, headers).then((resources) => {
       if (resources) {
         setState({
           resources: resources,
         });
       }
     });
-  }, [props, headers]);
+  }, [props, headers, parentParams]);
 
   useEffect(() => {
     refreshList();
@@ -55,6 +66,7 @@ export default function ResourceListPage(props: ResourceListProps) {
               navigate(
                 props.resource.substituteUrlParameters(
                   props.resource.base_url(),
+                  parentParams,
                 ) + "/_create",
               )
             }
@@ -69,6 +81,7 @@ export default function ResourceListPage(props: ResourceListProps) {
       <ResourceListTable
         resource={props.resource}
         resources={state.resources}
+        parentParams={parentParams}
         onRefresh={refreshList}
       />
     </div>
