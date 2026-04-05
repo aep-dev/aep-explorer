@@ -1,6 +1,5 @@
 {
-  "name": "ui",
-  "private": true,
+  "name": "@aep_dev/aep-explorer",
   "version": "0.1.1",
   "type": "module",
   "scripts": {
