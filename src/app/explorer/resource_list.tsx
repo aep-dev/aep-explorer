@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Plus, RefreshCw } from "lucide-react";
 import { ResourceSchema } from "@/state/openapi";
 import { ResourceInstance } from "@/state/fetch";
 import { selectHeaders } from "@/state/store";
 import { useAppSelector } from "@/hooks/store";
-import { ResourceListTable } from "@/components/resource_list";
+import { ListResourceComponent } from "@/components/list/list";
 
 type ResourceListState = {
   resources: ResourceInstance[];
@@ -49,41 +47,22 @@ export default function ResourceListPage(props: ResourceListProps) {
     refreshList();
   }, [props, refreshList]);
 
+  const handleCreate = useCallback(() => {
+    navigate(
+      props.resource.substituteUrlParameters(
+        props.resource.base_url(),
+        parentParams,
+      ) + "/_create",
+    );
+  }, [navigate, props.resource, parentParams]);
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1>
-          {props.resource.plural_name
-            .split(" ")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ")}
-        </h1>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() =>
-              navigate(
-                props.resource.substituteUrlParameters(
-                  props.resource.base_url(),
-                  parentParams,
-                ) + "/_create",
-              )
-            }
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={refreshList}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      <ResourceListTable
-        resource={props.resource}
-        resources={state.resources}
-        parentParams={parentParams}
-        onRefresh={refreshList}
-      />
-    </div>
+    <ListResourceComponent
+      resource={props.resource}
+      resources={state.resources}
+      parentParams={parentParams}
+      onRefresh={refreshList}
+      onCreate={handleCreate}
+    />
   );
 }
